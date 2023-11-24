@@ -5,11 +5,8 @@ import evaluate
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 def test(args):
-    # checkpoint = str(args.checkpoint)
-    # device = f"cuda:{args.device}"
-    
-    checkpoint = "bunbohue/bigbird-pegasus-large-arxiv_readme_summarization"
-    device = "cuda:0"
+    checkpoint = str(args.checkpoint)
+    device = f"cuda:{args.device}"
     
     # Load test set
     test_df = pd.read_csv('../dataset/test.csv', usecols=['readme', 'description'])
