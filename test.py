@@ -27,9 +27,11 @@ def test(args):
     # Evaluate in test set
     predictions, references = [], []
 
+    prefix = "summarize: "
+    
     print("Testing...")
     for sample in test_df['readme']:
-        inputs = tokenizer(sample, return_tensors="pt", truncation=True).input_ids.to(device)
+        inputs = tokenizer(prefix + sample, return_tensors="pt", truncation=True).input_ids.to(device)
         outputs = model.generate(inputs, max_new_tokens=128, do_sample=False)
         predictions.append(tokenizer.decode(outputs[0], skip_special_tokens=True))
 
