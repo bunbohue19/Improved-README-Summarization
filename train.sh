@@ -7,10 +7,35 @@ export TRANSFORMERS_CACHE=/media/aiotlab3/27934be5-a11a-44ba-8b28-750d135bc3b3/R
 # Specify the device
 export CUDA_VISIBLE_DEVICES="0,1"
 
-## Fine-tune bigbird-pegasus-large-arxiv
-## Disable tokenizers parallelism
+# Disable tokenizers parallelism
 export TOKENIZERS_PARALLELISM=false
-python bigbird-pegasus-large-arxiv_readme_summarization.py
+
+## Fine-tune bart-base
+# python bart-base_readme_summarization.py
+
+## Fine-tune bart-large
+# python bart-large_readme_summarization.py
+
+## Fine-tune t5-small
+# python t5-small_readme_summarization.py
+
+## Fine-tune t5-base
+# python t5-base_readme_summarization.py
 
 ## Fine-tune t5-large
 # python t5-large_readme_summarization.py
+
+## Fine-tune bigbird-pegasus-large-arxiv
+# python bigbird-pegasus-large-arxiv_readme_summarization.py
+
+## Fine-tune bigbird-pegasus-large-bigpatent
+# python bigbird-pegasus-large-arxiv_readme_summarization.py
+
+## Fine-tune bigbird-pegasus-large-pubmed
+# python bigbird-pegasus-large-arxiv_readme_summarization.py
+
+## Fine-tune pegasus-large
+# python pegasus-large_readme_summarization.py
+
+## Fine-tune pegasus-xsum
+# python pegasus-xsum_readme_summarization.py
