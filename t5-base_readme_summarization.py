@@ -39,7 +39,7 @@ if __name__ == '__main__':
         'val'  : Dataset.from_pandas(val_df)
     })
     
-    checkpoint = "facebook/bart-base"
+    checkpoint = "t5-base"
     tokenizer = AutoTokenizer.from_pretrained(checkpoint)
     model = AutoModelForSeq2SeqLM.from_pretrained(checkpoint)
     prefix = "summarize: "
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     rouge = evaluate.load("rouge")
     
     training_args = Seq2SeqTrainingArguments(
-    output_dir="bart-base_readme_summarization",
+    output_dir="t5-base_readme_summarization",
     evaluation_strategy="epoch",
     learning_rate=2e-5,
     per_device_train_batch_size=4,

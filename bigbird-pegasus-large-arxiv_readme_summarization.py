@@ -11,8 +11,8 @@ def preprocess_function(examples):
     for doc in examples["readme"]:
         if doc is None:
             continue
-        # inputs = [prefix + doc for doc in examples["readme"]]
-        inputs = [doc for doc in examples["readme"]]  
+        inputs = [prefix + doc for doc in examples["readme"]]
+        # inputs = [doc for doc in examples["readme"]]  
     # inputs = examples["readme"]
     model_inputs = tokenizer(inputs, max_length=1024, truncation=True, padding='max_length', return_tensors="pt")
     # model_inputs = model_inputs.to(device)
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     # model = get_peft_model(model, peft_config)
     # model.print_trainable_parameters()
     
-    # prefix = "summarize: "
+    prefix = "summarize: "
     tokenized_readme = readme_dataset.map(function=preprocess_function, batched=True)
     data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=checkpoint, return_tensors="pt", padding='max_length')
     rouge = evaluate.load("rouge")
