@@ -17,3 +17,6 @@ export TOKENIZERS_PARALLELISM=false
 
 # Test 
 python test.py --checkpoint=$CHECKPOINT --device=${2}
+
+# echo $CHECKPOINT
+# echo $2
