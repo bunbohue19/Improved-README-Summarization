@@ -49,13 +49,13 @@ if __name__ == '__main__':
     parser.add_argument("--checkpoint", type=str, help="Specify model checkpoint name:\n\
                         1.bart-base\n\
                         2.bart-large\n\
-                        3.t5-small\n\
-                        4.t5-base\n\
-                        5.t5-large\n\
-                        6.bigbird-pegasus-large-arxiv\n\
-                        7.bigbird-pegasus-large-bigpatent\n\
-                        8.bigbird-pegasus-large-pubmed\n\
-                        9.pegasus-large\n\
+                        3.bart-large-xsum\n\
+                        4.t5-small\n\
+                        5.t5-base\n\
+                        6.t5-large\n\
+                        7.pegasus-large\n\
+                        8.pegasus-x-base\n\
+                        9.pegasus-x-large\n\
                         10.pegasus-xsum")
     
     parser.add_argument("--device", type=str, help="Specify the device number")
