@@ -17,6 +17,9 @@ export TOKENIZERS_PARALLELISM=false
 ## Fine-tune bart-large
 # python bart-large_readme_summarization.py
 
+## Fine-tune bart-large-xsum
+# python bart-large-xsum_readme_summarization.py
+
 ## Fine-tune t5-small
 # python t5-small_readme_summarization.py
 
@@ -26,17 +29,17 @@ export TOKENIZERS_PARALLELISM=false
 ## Fine-tune t5-large
 # python t5-large_readme_summarization.py
 
-## Fine-tune bigbird-pegasus-large-arxiv
-# python bigbird-pegasus-large-arxiv_readme_summarization.py
-
-## Fine-tune bigbird-pegasus-large-bigpatent
-# python bigbird-pegasus-large-arxiv_readme_summarization.py
-
-## Fine-tune bigbird-pegasus-large-pubmed
-# python bigbird-pegasus-large-arxiv_readme_summarization.py
-
 ## Fine-tune pegasus-large
 # python pegasus-large_readme_summarization.py
+
+## Fine-tune pegasus-x-base
+# python pegasus-x-base_readme_summarization.py
+
+## Fine-tune pegasus-x-large
+# python pegasus-x-large_readme_summarization.py
+
+## Fine-tune pegasus-xsum
+# python pegasus-xsum_readme_summarization.py
 
 ## Fine-tune pegasus-xsum
 # python pegasus-xsum_readme_summarization.py
