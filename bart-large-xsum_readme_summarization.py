@@ -58,7 +58,7 @@ if __name__ == '__main__':
         num_train_epochs=5,
         predict_with_generate=True,
         fp16=True,
-#        push_to_hub=True,
+        # push_to_hub=True,
     )
 
 trainer = Seq2SeqTrainer(
