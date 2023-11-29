@@ -4,8 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import evaluate
 from datasets import Dataset, DatasetDict
-from transformers import PegasusTokenizer, DataCollatorForSeq2Seq, PegasusConfig, PegasusModel, Pega>
-from peft import prepare_model_for_kbit_training, set_peft_model_state_dict, get_peft_model, LoraCon>
+from transformers import PegasusTokenizer, DataCollatorForSeq2Seq, PegasusConfig, PegasusModel, PegasusForConditionalGeneration, Seq2SeqTrainingArguments, Seq2SeqTrainer, BitsAndBytesConfig
+from peft import prepare_model_for_kbit_training, set_peft_model_state_dict, get_peft_model, LoraConfig, TaskType
 
 def preprocess_function(examples):
     for doc in examples["readme"]:
@@ -14,7 +14,7 @@ def preprocess_function(examples):
         inputs = [prefix + doc for doc in examples["readme"]]
         # inputs = [doc for doc in examples["readme"]]  
     # inputs = examples["readme"]
-    model_inputs = tokenizer(inputs, max_length=512, truncation=True, padding='longest', return_tens>
+    model_inputs = tokenizer(inputs, max_length=512, truncation=True, padding='longest', return_tensors="pt")
     # model_inputs = model_inputs.to(device)
     
     labels = tokenizer(text_target=examples["description"], max_length=128, truncation=True)
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     checkpoint = "google/pegasus-xsum"
     tokenizer = PegasusTokenizer.from_pretrained(checkpoint, truncation=True)
     model = PegasusForConditionalGeneration.from_pretrained(checkpoint)
-    # model = AutoModelForSeq2SeqLM.from_pretrained(checkpoint, quantization_config=bnb_config, atte>
+    # model = AutoModelForSeq2SeqLM.from_pretrained(checkpoint, quantization_config=bnb_config, attention_type="original_full")
     # model = model.to(device)
     
     # peft_config = LoraConfig(
@@ -72,10 +72,10 @@ if __name__ == '__main__':
     
     # model = get_peft_model(model, peft_config)
     # model.print_trainable_parameters()
-
+    
     prefix = "summarize: "
     tokenized_readme = readme_dataset.map(function=preprocess_function, batched=True)
-    data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=checkpoint, return_tensors="pt>
+    data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=checkpoint, return_tensors="pt", padding='longest')
     rouge = evaluate.load("rouge")
     
     training_args = Seq2SeqTrainingArguments(
@@ -92,7 +92,7 @@ if __name__ == '__main__':
         load_best_model_at_end=True,
         fp16=False,
         report_to="wandb",
-        push_to_hub=True
+    #    push_to_hub=True
     )
 
     trainer = Seq2SeqTrainer(
@@ -107,4 +107,4 @@ if __name__ == '__main__':
     
     trainer.train()
     
-    trainer.push_to_hub()
+    # trainer.push_to_hub()
