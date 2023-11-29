@@ -96,7 +96,7 @@ if __name__ == '__main__':
         load_best_model_at_end=True,
         fp16=False,
         report_to="wandb",
-        push_to_hub=True
+        # push_to_hub=True
     )
 
     trainer = Seq2SeqTrainer(
@@ -111,4 +111,4 @@ if __name__ == '__main__':
     
     trainer.train()
     
-    trainer.push_to_hub()
+    # trainer.push_to_hub()
