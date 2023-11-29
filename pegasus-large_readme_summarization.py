@@ -4,8 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import evaluate
 from datasets import Dataset, DatasetDict
-from transformers import PegasusTokenizer, DataCollatorForSeq2Seq, PegasusForConditionalGeneration, >
-from peft import prepare_model_for_kbit_training, set_peft_model_state_dict, get_peft_model, LoraCon>
+from transformers import PegasusTokenizer, DataCollatorForSeq2Seq, PegasusForConditionalGeneration, Seq2SeqTrainingArguments, Seq2SeqTrainer, BitsAndBytesConfig
+from peft import prepare_model_for_kbit_training, set_peft_model_state_dict, get_peft_model, LoraConfig, TaskType
 
 def preprocess_function(examples):
     for doc in examples["readme"]:
@@ -92,7 +92,7 @@ if __name__ == '__main__':
         load_best_model_at_end=True,
         fp16=False,
         report_to="wandb",
-        push_to_hub=True
+#        push_to_hub=True
     )
 
     trainer = Seq2SeqTrainer(
@@ -107,4 +107,4 @@ if __name__ == '__main__':
     
     trainer.train()
     
-    trainer.push_to_hub()
+#    trainer.push_to_hub()
