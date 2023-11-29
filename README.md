@@ -19,4 +19,4 @@ This is the implementation of the: ""
 - PEGASUS-large (571M)
 - PEGASUS-X-base (272M)
 - PEGASUS-X-large (568M)
-- PEGASUS-xsum (fined-tune at xsum dataset)
+- PEGASUS-xsum (568M) (fined-tune at xsum dataset)
