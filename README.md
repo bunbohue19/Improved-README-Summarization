@@ -17,6 +17,6 @@ This is the implementation of the: ""
 - BART-large (406M)
 - BART-large-xsum (406M) (fined-tune at xsum dataset)
 - PEGASUS-large (571M)
-- PEGASUS-X-base 
-- PEGASUS-X-large 
+- PEGASUS-X-base (272M)
+- PEGASUS-X-large (568M)
 - PEGASUS-xsum (fined-tune at xsum dataset)
