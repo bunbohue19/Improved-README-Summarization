@@ -91,7 +91,6 @@ if __name__ == '__main__':
         per_device_eval_batch_size=4,
         save_total_limit=3,
         num_train_epochs=4,
-        predict_with_generate=True,
         load_best_model_at_end=True,
         bf16=True,
         fp16=False,
