@@ -19,19 +19,6 @@ def formatting_func(example):
         ### Summary:
         {example["description"]}</s>"""
 
-def compute_metrics(eval_pred):
-    predictions, labels = eval_pred
-    decoded_preds = tokenizer.batch_decode(predictions, skip_special_tokens=True)
-    labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
-    decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
-
-    result = rouge.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
-
-    prediction_lens = [np.count_nonzero(pred != tokenizer.pad_token_id) for pred in predictions]
-    result["gen_len"] = np.mean(prediction_lens)
-
-    return {k: round(v, 4) for k, v in result.items()}
-
 if __name__ == '__main__':
     device = torch.device("cuda:0")
     train_df = pd.read_csv('../dataset/train.csv', usecols=['readme', 'description'])
@@ -51,6 +38,9 @@ if __name__ == '__main__':
     
     checkpoint = "meta-llama/Llama-2-7b-chat-hf"
     tokenizer = LlamaTokenizer.from_pretrained(checkpoint)
+    tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.padding_side = "right"
+    
     model = LlamaForCausalLM.from_pretrained(
         checkpoint, 
         quantization_config=bnb_config,
