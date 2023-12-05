@@ -68,7 +68,7 @@ def test(args):
         idx += 1
         results.append(result)
  
-    results_df = pd.DataFrame(results, columns=['ROUGE-1', 'ROUGE-2', 'ROUGE-L', 'ROUGE-LSUM'])
+    results_df = pd.DataFrame(columns=['ROUGE-1', 'ROUGE-2', 'ROUGE-L', 'ROUGE-LSUM'])
     
     for result in results:
         results_df.loc[-1] = [result['rouge1'], result['rouge2'], result['rougeL'], result['rougeLsum']]
