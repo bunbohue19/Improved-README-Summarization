@@ -13,7 +13,7 @@ if __name__ == '__main__':
         bnb_4bit_compute_dtype=torch.bfloat16
     )
     
-    device = "cuda:0"
+    device = torch.device("cuda:0")
     tokenizer = LlamaTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat-hf")
     model = LlamaForCausalLM.from_pretrained("meta-llama/Llama-2-7b-chat-hf", quantization_config=bnb_config, device_map=device)
     
