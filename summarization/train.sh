@@ -43,3 +43,6 @@ export TOKENIZERS_PARALLELISM=false
 
 ## Fine-tune pegasus-xsum
 # python pegasus-xsum_readme_summarization.py
+
+## Fine-tune Llama2
+python llama2-7b-chat_readme_summarization.py
