@@ -92,7 +92,6 @@ if __name__ == '__main__':
         save_total_limit=3,
         num_train_epochs=4,
         load_best_model_at_end=True,
-        bf16=True,
         fp16=False,
         report_to="wandb",
         push_to_hub=True
