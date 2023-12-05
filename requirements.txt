@@ -13,3 +13,4 @@ peft
 bitsandbytes
 wandb
 argparse
+trl
