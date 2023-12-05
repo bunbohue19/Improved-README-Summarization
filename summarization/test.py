@@ -8,6 +8,9 @@ def test(args):
     checkpoint = f"{args.checkpoint}"
     device = f"cuda:{args.device}"
     
+    print(f"You are using checkpoint: {checkpoint}")
+    print(f"And device: {device}")
+    
     # Load test set
     test_df = pd.read_csv('../dataset/test.csv', usecols=['readme', 'description'])
     
@@ -25,20 +28,56 @@ def test(args):
     prefix = "summarize: "
     
     print("Testing...")
-    for sample in test_df['readme']:
-        inputs = tokenizer(prefix + sample, return_tensors="pt", truncation=True).input_ids.to(device)
-        outputs = model.generate(inputs, max_new_tokens=128, do_sample=False)
-        predictions.append(tokenizer.decode(outputs[0], skip_special_tokens=True))
-
-    references = [sample for sample in test_df['description']]
-    print('Calculating...')
-    results = rouge.compute(predictions=predictions, references=references)
     
-    print('ROUGE-1 : ', round(results['rouge1'] * 100, 2),
-          '\nROUGE-2 : ', round(results['rouge2'] * 100, 2),
-          '\nROUGE-L : ', round(results['rougeL'] * 100, 2),
-          '\nROUGE-LSUM : ', round(results['rougeLsum'] * 100, 2))
+    ### Get the average score:
+    # for sample in test_df['readme']:
+    #     inputs = tokenizer(prefix + sample, return_tensors="pt", truncation=True).input_ids.to(device)
+    #     outputs = model.generate(inputs, max_new_tokens=128, do_sample=False)
+    #     predictions.append(tokenizer.decode(outputs[0], skip_special_tokens=True))
 
+    # references = [sample for sample in test_df['description']]
+    # print('Calculating...')
+    # results = rouge.compute(predictions=predictions, references=references)
+    
+    # print('ROUGE-1 : ', round(results['rouge1'] * 100, 2),
+    #       '\nROUGE-2 : ', round(results['rouge2'] * 100, 2),
+    #       '\nROUGE-L : ', round(results['rougeL'] * 100, 2),
+    #       '\nROUGE-LSUM : ', round(results['rougeLsum'] * 100, 2))
+
+    ### Get the score per sample
+    idx = 1
+    results = []
+    for readme, description in zip(test_df['readme'], test_df['description']):
+        inputs = tokenizer(prefix + readme, return_tensors="pt", truncation=True).input_ids.to(device)
+        outputs = model.generate(inputs, max_new_tokens=128, do_sample=False)
+        
+        prediction = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        reference = description
+        result = rouge.compute(predictions=[prediction], references=[reference])
+        r1 = round(result['rouge1'] * 100, 2)
+        r2 = round(result['rouge2'] * 100, 2)
+        rl = round(result['rougeL'] * 100, 2)
+        rlsum = round(result['rougeLsum'] * 100, 2)
+        
+        print('Sample: ', idx)
+        print('ROUGE-1 : ', r1,
+              '\nROUGE-2 : ', r2,
+              '\nROUGE-L : ', rl,
+              '\nROUGE-LSUM : ', rlsum)
+        print('\n')
+        idx += 1
+        results.append(result)
+ 
+    results_df = pd.DataFrame(results, columns=['ROUGE-1', 'ROUGE-2', 'ROUGE-L', 'ROUGE-LSUM'])
+    
+    for result in results:
+        results_df.loc[-1] = [result['rouge1'], result['rouge2'], result['rougeL'], result['rougeLsum']]
+        results_df.index += 1
+
+    full_results_df = pd.concat([test_df, results_df], axis=1)
+    full_results_df.dropna()
+    full_results_df.to_csv(f'../results/result_{checkpoint.replace("bunbohue/", "")}.csv')
+    
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", type=str, help="Specify model checkpoint name:\n\
@@ -51,7 +90,8 @@ if __name__ == '__main__':
                         7.pegasus-large\n\
                         8.pegasus-x-base\n\
                         9.pegasus-x-large\n\
-                        10.pegasus-xsum")
+                        10.pegasus-xsum\n\
+                        11.llama2-7b")
     
     parser.add_argument("--device", type=str, help="Specify the device number")
     args = parser.parse_args()
