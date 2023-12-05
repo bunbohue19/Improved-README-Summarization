@@ -5,7 +5,7 @@ import evaluate
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 def test(args):
-    checkpoint = str(args.checkpoint)
+    checkpoint = f"{args.checkpoint}"
     device = f"cuda:{args.device}"
     
     # Load test set
@@ -13,12 +13,7 @@ def test(args):
     
     # Load model directly
     tokenizer = AutoTokenizer.from_pretrained(checkpoint)
-    
-    if "pegasus" not in checkpoint:
-        model = AutoModelForSeq2SeqLM.from_pretrained(checkpoint)
-    else:
-        model = AutoModelForSeq2SeqLM.from_pretrained(checkpoint, attention_type="original_full")
-    
+    model = AutoModelForSeq2SeqLM.from_pretrained(checkpoint)
     model = model.to(device)
         
     # Load metric
