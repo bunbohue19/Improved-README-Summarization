@@ -3,9 +3,6 @@ import torch
 import pandas as pd
 import evaluate
 
-def post_processing(outputs : str):
-    return outputs[1:]
-
 if __name__ == '__main__':
     test_df = pd.read_csv('../dataset/test.csv', usecols=['readme', 'description'])
 
@@ -49,7 +46,7 @@ if __name__ == '__main__':
         generate_ids = model.generate(inputs)
         outputs = tokenizer.batch_decode(generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
         
-        prediction = post_processing(outputs)
+        prediction = outputs
         reference = description
         
         result = rouge.compute(predictions=[prediction], references=[reference])
