@@ -11,7 +11,7 @@ from trl import SFTTrainer
 def formatting_func(example):
     return f"""<s>### Instruction:
         Summarize the following README contents.\
-        Your answer should be based on the provided dialogue only.
+        Your answer should be based on the provided README contents only.
         
         ### README contents:
         {example["readme"]}
