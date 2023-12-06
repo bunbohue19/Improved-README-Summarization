@@ -36,7 +36,7 @@ if __name__ == '__main__':
         bnb_4bit_compute_dtype=torch.bfloat16
     )
     
-    checkpoint = "meta-llama/Llama-2-7b-chat-hf"
+    checkpoint = "meta-llama/Llama-2-7b-hf"
     tokenizer = LlamaTokenizer.from_pretrained(checkpoint)
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = "right"
