@@ -47,6 +47,7 @@ def test(args):
     ### Get the score per sample
     idx = 1
     results = []
+    predictions = []
     for readme, description in zip(test_df['readme'], test_df['description']):
         inputs = tokenizer(prefix + readme, return_tensors="pt", truncation=True).input_ids.to(device)
         outputs = model.generate(inputs, max_new_tokens=128, do_sample=False)
@@ -67,14 +68,20 @@ def test(args):
         print('\n')
         idx += 1
         results.append(result)
+        predictions.append(prediction)
  
     results_df = pd.DataFrame(columns=['ROUGE-1', 'ROUGE-2', 'ROUGE-L', 'ROUGE-LSUM'])
+    predictions_df = pd.DataFrame(columns=['prediction'])
     
     for result in results:
         results_df.loc[-1] = [result['rouge1'], result['rouge2'], result['rougeL'], result['rougeLsum']]
         results_df.index += 1
 
-    full_results_df = pd.concat([test_df, results_df], axis=1)
+    for prediction in predictions:
+        predictions_df.loc[-1] = [prediction]
+        predictions_df.index += 1
+    
+    full_results_df = pd.concat([test_df, predictions_df, results_df], axis=1)
     full_results_df.dropna()
     full_results_df.to_csv(f'../results/result_{checkpoint.replace("bunbohue/", "")}.csv')
     
