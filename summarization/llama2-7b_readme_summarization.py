@@ -71,7 +71,7 @@ if __name__ == '__main__':
     rouge = evaluate.load("rouge")
     
     training_args = TrainingArguments(
-        output_dir="llama2-7b-chat_readme_summarization",
+        output_dir="llama2-7b_readme_summarization",
         evaluation_strategy="epoch",
         save_strategy="epoch",
         learning_rate=2e-5,
