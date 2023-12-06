@@ -19,7 +19,7 @@ if __name__ == '__main__':
     checkpoint = "meta-llama/Llama-2-7b-chat-hf"
     device = torch.device("cuda:0")
     tokenizer = LlamaTokenizer.from_pretrained(checkpoint)
-    model = LlamaForCausalLM.from_pretrained(checkpoint, quantization_config=bnb_config, device_map=device)
+    model = LlamaForCausalLM.from_pretrained(checkpoint, quantization_config=bnb_config, device_map={"": 0})
     
     print("Inferencing...")
     
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     results = []
     for readme, description in zip(test_df['readme'], test_df['description']): 
         prompt = f"""### Instruction:
-        Summarize the following README contents.\
+        Summarize the following README contents with LESS THAN OR EQUAL {len(description)} words\
         Your answer should be based on the provided README contents only.
         
         ### README contents:
