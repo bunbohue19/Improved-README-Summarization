@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import evaluate
 import re
 from datasets import Dataset, DatasetDict
-from transformers import LlamaTokenizer, LlamaForCausalLM, TrainingArguments, BitsAndBytesConfig
+from transformers import LlamaTokenizer, LlamaForCausalLM, TrainingArguments, Trainer, BitsAndBytesConfig
 from peft import prepare_model_for_kbit_training, set_peft_model_state_dict, get_peft_model, LoraConfig, TaskType
 from trl import SFTTrainer
 
@@ -15,24 +15,30 @@ def preprocessing_readme(readme):
     readme = re.sub(r"\s+", " ", readme)
     readme = re.sub(r"#+", " ", readme)
     readme = re.sub(r"\^[^ ]+", "", readme)
-    return readme
+    return readme.strip()
 
 def preprocessing_description(description):
     if description.endswith('.'):
         description = description[:-1]
     description = re.sub(r"\. ", ", ", description)
-    return description + '.'
+    description = description + '.'
+    return description.strip()
 
 def formatting_func(sample):
-    return f"""### Instruction:
-        Summarize the following README contents with LESS THAN 50 words\
-        Your answer should be based on the provided README contents only.
-        
+    prompt = f"""### Instruction:
+        Summarize the following README contents with LESS THAN 50 words. Your answer should be based on the provided README contents only:
         ### README contents:
-        {sample["readme"].strip()}
-        
+        {sample["readme"]}
         ### Summary:
-        {sample["description"].strip()}"""
+        """
+    for word in prompt:
+        if word is None:
+            continue
+        inputs = [word for word in prompt]
+    model_inputs = tokenizer(inputs, max_length=4096, truncation=True)
+    labels = tokenizer(text_target=sample["description"], max_length=128, truncation=True)
+    model_inputs["labels"] = labels["input_ids"]                                                                         
+    return model_inputs
 
 if __name__ == '__main__':
     device = torch.device("cuda:0")
@@ -126,7 +132,7 @@ if __name__ == '__main__':
         train_dataset=tokenized_readme["train"],
         eval_dataset=tokenized_readme["val"],
         peft_config=peft_config,
-        max_seq_length=2048,
+        max_seq_length=4096,
         tokenizer=tokenizer,
         formatting_func=formatting_func
     )
