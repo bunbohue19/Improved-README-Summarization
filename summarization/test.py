@@ -12,7 +12,7 @@ def test(args):
     print(f"And device: {device}")
     
     # Load test set
-    test_df = pd.read_csv('../dataset/test.csv', usecols=['readme', 'description'])
+    test_df = pd.read_csv('./Improved-README-Summarization/dataset/test.csv', usecols=['readme', 'description'])
     
     # Load model directly
     tokenizer = AutoTokenizer.from_pretrained(checkpoint)
@@ -69,15 +69,15 @@ def test(args):
         idx += 1
         results.append(result)
         predictions.append(prediction)
+
+        if idx == 5:
+          break
  
     results_df = pd.DataFrame(data=results, columns=['ROUGE-1', 'ROUGE-2', 'ROUGE-L', 'ROUGE-LSUM'])
     predictions_df = pd.DataFrame(data=predictions, columns=['prediction'])
     
-    for result in results:
-        results_df.loc[-1]['ROUGE-1'] = [result['rouge1']]
-        results_df.loc[-1]['ROUGE-2'] = [result['rouge2']]
-        results_df.loc[-1]['ROUGE-L'] = [result['rougeL']]
-        results_df.loc[-1]['ROUGE-LSUM'] = [result['rougeLsum']]
+    for result in results_df:
+        results_df.loc[-1] = [result['rouge1'], result['rouge2'], result['rougeL'], result['rougeLsum']]
         results_df.index += 1
     results_df.index -= 1
     
@@ -88,7 +88,7 @@ def test(args):
     
     full_results_df = pd.concat([test_df, predictions_df, results_df], axis=1)
     full_results_df = full_results_df.dropna()
-    full_results_df.to_csv(f'../results/result_{checkpoint.replace("bunbohue/", "")}.csv')
+    full_results_df.to_csv(f'./Improved-README-Summarization/results/result_{checkpoint.replace("bunbohue/", "")}.csv')
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
