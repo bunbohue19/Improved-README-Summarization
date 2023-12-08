@@ -24,16 +24,19 @@ def preprocessing_description(description):
     description = description + '.'
     return description.strip()
 
-def prompt_format(readme):
-    return f"""### Instruction:
-        Summarize the following README contents with LESS THAN 50 words. Your answer should be based on the provided README contents only.
-        ### README contents:
-        {readme}
-        ### Summary:
-        """
+def prompts(df):
+    prompts = []
+    for sample in df['readme']:
+        prompts.append(f"""### Instruction:
+            Summarize the following README contents with LESS THAN 50 words. Your answer should be based on the provided README contents only.
+            ### README contents:
+            {sample}
+            ### Summary:
+            """)
+    return prompts
 
 def formatting_func(sample):        
-    inputs = [word for word in prompt_format(sample["readme"])] 
+    inputs = [word for word in sample["prompt"]] 
     model_inputs = tokenizer(inputs, max_length=1024, truncation=True)    
     labels = tokenizer(text_target=sample["description"], max_length=128, truncation=True)                
     model_inputs["labels"] = labels["input_ids"]                                                                       
@@ -69,9 +72,25 @@ if __name__ == '__main__':
     for i, sample in enumerate(val_df['description']):
         val_df.at[i, 'description'] = preprocessing_description(sample)
     
+    train_prompts_df = pd.DataFrame(data=prompts(train_df), columns=['prompt'])
+    val_prompts_df = pd.DataFrame(data=prompts(val_df), columns=['prompt'])
+
+    for prompt in train_prompts_df:
+        train_prompts_df.loc[-1] = [prompt]
+        train_prompts_df.index += 1
+    train_prompts_df.index -= 1
+
+    for prompt in val_prompts_df:
+        val_prompts_df.loc[-1] = [prompt]
+        val_prompts_df.index += 1
+    val_prompts_df.index -= 1
+    
+    new_train_df = pd.concat([train_df, train_prompts_df], axis=1).dropna()
+    new_val_df = pd.concat([val_df, val_prompts_df], axis=1).dropna()
+    
     readme_dataset = DatasetDict({
-        'train' : Dataset.from_pandas(train_df),
-        'val'  : Dataset.from_pandas(val_df)
+        'train' : Dataset.from_pandas(new_train_df),
+        'val'  : Dataset.from_pandas(new_val_df)
     })
     
     bnb_config = BitsAndBytesConfig(

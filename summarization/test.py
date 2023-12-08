@@ -81,7 +81,7 @@ def test(args):
         predictions_df.loc[-1] = [prediction]
         predictions_df.index += 1
     
-    full_results_df = pd.concat([test_df, predictions_df, results_df], axis=1)
+    full_results_df = pd.concat([test_df, predictions_df, results_df], axis=1, ignore_index=True)
     full_results_df.dropna()
     full_results_df.to_csv(f'../results/result_{checkpoint.replace("bunbohue/", "")}.csv')
     
