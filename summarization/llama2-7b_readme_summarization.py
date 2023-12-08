@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import evaluate
 import re
 from datasets import Dataset, DatasetDict
-from transformers import LlamaTokenizer, LlamaForCausalLM, DataCollatorForSeq2Seq, TrainingArguments, Trainer, BitsAndBytesConfig
+from transformers import LlamaTokenizer, LlamaForCausalLM, TrainingArguments, BitsAndBytesConfig
 from peft import prepare_model_for_kbit_training, set_peft_model_state_dict, get_peft_model, LoraConfig, TaskType
 from trl import SFTTrainer
 
@@ -26,34 +26,22 @@ def preprocessing_description(description):
 
 def prompts(df):
     prompts = []
-    for sample in df['readme']:
+    for readme, description in zip(df['readme'], df['description']):
         prompts.append(f"""### Instruction:
             Summarize the following README contents with LESS THAN 50 words. Your answer should be based on the provided README contents only.
             ### README contents:
-            {sample}
+            {readme}
             ### Summary:
+            {description}
             """)
     return prompts
 
 def formatting_func(sample):        
-    inputs = [word for word in sample["prompt"]] 
-    model_inputs = tokenizer(inputs, max_length=2048, truncation=True)    
-    labels = tokenizer(text_target=sample["description"], max_length=128, truncation=True)                
-    model_inputs["labels"] = labels["input_ids"]                                                                       
-    return model_inputs
-
-def compute_metrics(eval_pred):
-    predictions, labels = eval_pred
-    decoded_preds = tokenizer.batch_decode(predictions, skip_special_tokens=True)
-    labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
-    decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
-
-    result = rouge.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
-
-    prediction_lens = [np.count_nonzero(pred != tokenizer.pad_token_id) for pred in predictions]
-    result["gen_len"] = np.mean(prediction_lens)
-
-    return {k: round(v, 4) for k, v in result.items()}
+    return {
+        "readme": sample["readme"],
+        "description": sample["description"],
+        "prompt": sample["prompt"]
+    }
 
 if __name__ == '__main__':
     device = torch.device("cuda:0")
@@ -103,6 +91,7 @@ if __name__ == '__main__':
     checkpoint = "meta-llama/Llama-2-7b-hf"
     tokenizer = LlamaTokenizer.from_pretrained(checkpoint)
     tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.padding_side = "right"
     
     model = LlamaForCausalLM.from_pretrained(
         checkpoint, 
@@ -135,7 +124,6 @@ if __name__ == '__main__':
     model.print_trainable_parameters()
     
     tokenized_readme = readme_dataset.map(function=formatting_func, batched=True)
-    data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=checkpoint)
     rouge = evaluate.load("rouge")
     
     training_args = TrainingArguments(
@@ -162,11 +150,9 @@ if __name__ == '__main__':
         train_dataset=tokenized_readme["train"],
         eval_dataset=tokenized_readme["val"],
         peft_config=peft_config,
+        dataset_text_field="prompt",
         max_seq_length=2048,
         tokenizer=tokenizer,
-        data_collator=data_collator,
-        compute_metrics=compute_metrics,
-        formatting_func=formatting_func
     )
     
     trainer.train()
