@@ -165,7 +165,8 @@ if __name__ == '__main__':
         max_seq_length=2048,
         tokenizer=tokenizer,
         data_collator=data_collator,
-        compute_metrics=compute_metrics
+        compute_metrics=compute_metrics,
+        formatting_func=formatting_func
     )
     
     trainer.train()
