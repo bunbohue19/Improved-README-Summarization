@@ -15,24 +15,31 @@ def preprocessing_readme(readme):
     readme = re.sub(r"\s+", " ", readme)
     readme = re.sub(r"#+", " ", readme)
     readme = re.sub(r"\^[^ ]+", "", readme)
-    return readme
+    return readme.strip()
 
 def preprocessing_description(description):
     if description.endswith('.'):
         description = description[:-1]
     description = re.sub(r"\. ", ", ", description)
-    return description + '.'
+    description = description + '.'
+    return description.strip()
 
 def formatting_func(sample):
-    return f"""### Instruction:
+    inputs = f"""### Instruction:
         Summarize the following README contents with LESS THAN 50 words\
         Your answer should be based on the provided README contents only.
         
         ### README contents:
-        {sample["readme"].strip()}
+        {sample["readme"]}
         
         ### Summary:
-        {sample["description"].strip()}"""
+        {sample["description"]}"""
+
+    model_inputs = tokenizer(prompt, max_length=4096, truncation=True, padding=True)
+    labels = tokenizer(text_target=sample["description"], max_length=128, truncation=True, padding=True)
+    model_inputs["labels"] = labels["input_ids"]
+    return model_inputs
+
 
 if __name__ == '__main__':
     device = torch.device("cuda:0")
