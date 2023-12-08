@@ -74,16 +74,20 @@ def test(args):
     predictions_df = pd.DataFrame(data=predictions, columns=['prediction'])
     
     for result in results:
-        results_df.loc[-1] = [result['rouge1'], result['rouge2'], result['rougeL'], result['rougeLsum']]
+        results_df.loc[-1]['ROUGE-1'] = [result['rouge1']]
+        results_df.loc[-1]['ROUGE-2'] = [result['rouge2']]
+        results_df.loc[-1]['ROUGE-L'] = [result['rougeL']]
+        results_df.loc[-1]['ROUGE-LSUM'] = [result['rougeLsum']]
         results_df.index += 1
-
+    results_df.index -= 1
+    
     for prediction in predictions_df:
         predictions_df.loc[-1] = [prediction]
         predictions_df.index += 1
     predictions_df.index -= 1
     
     full_results_df = pd.concat([test_df, predictions_df, results_df], axis=1)
-    full_results_df.dropna()
+    full_results_df = full_results_df.dropna()
     full_results_df.to_csv(f'../results/result_{checkpoint.replace("bunbohue/", "")}.csv')
     
 if __name__ == '__main__':
