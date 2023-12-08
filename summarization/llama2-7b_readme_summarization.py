@@ -151,7 +151,7 @@ if __name__ == '__main__':
         eval_dataset=tokenized_readme["val"],
         peft_config=peft_config,
         dataset_text_field="prompt",
-        max_seq_length=2048,
+        max_seq_length=4096,
         tokenizer=tokenizer,
     )
     
