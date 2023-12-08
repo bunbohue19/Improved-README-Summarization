@@ -34,7 +34,7 @@ def prompt_format(readme):
 
 def formatting_func(sample):        
     inputs = [word for word in prompt_format(sample["readme"])] 
-    model_inputs = tokenizer(inputs, max_length=4096, truncation=True)    
+    model_inputs = tokenizer(inputs, max_length=1024, truncation=True)    
     labels = tokenizer(text_target=sample["description"], max_length=128, truncation=True)                
     model_inputs["labels"] = labels["input_ids"]                                                                       
     return model_inputs
