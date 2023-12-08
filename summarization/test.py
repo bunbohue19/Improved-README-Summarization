@@ -55,29 +55,29 @@ def test(args):
         prediction = tokenizer.decode(outputs[0], skip_special_tokens=True)
         reference = description
         result = rouge.compute(predictions=[prediction], references=[reference])
-        r1 = round(result['rouge1'] * 100, 2)
-        r2 = round(result['rouge2'] * 100, 2)
-        rl = round(result['rougeL'] * 100, 2)
-        rlsum = round(result['rougeLsum'] * 100, 2)
+        result['rouge1'] = round(result['rouge1'] * 100, 2)
+        result['rouge2'] = round(result['rouge2'] * 100, 2)
+        result['rougeL'] = round(result['rougeL'] * 100, 2)
+        result['rougeLsum'] = round(result['rougeLsum'] * 100, 2)
         
         print('Sample: ', idx)
-        print('ROUGE-1 : ', r1,
-              '\nROUGE-2 : ', r2,
-              '\nROUGE-L : ', rl,
-              '\nROUGE-LSUM : ', rlsum)
+        print('ROUGE-1 : ', result['rouge1'],
+              '\nROUGE-2 : ', result['rouge2'],
+              '\nROUGE-L : ', result['rougeL'],
+              '\nROUGE-LSUM : ', result['rougeLsum'])
         print('\n')
         idx += 1
         results.append(result)
         predictions.append(prediction)
  
-    results_df = pd.DataFrame(columns=['ROUGE-1', 'ROUGE-2', 'ROUGE-L', 'ROUGE-LSUM'])
-    predictions_df = pd.DataFrame(columns=['prediction'])
+    results_df = pd.DataFrame(data=results, columns=['ROUGE-1', 'ROUGE-2', 'ROUGE-L', 'ROUGE-LSUM'])
+    predictions_df = pd.DataFrame(data=predictions, columns=['prediction'])
     
-    for result in results:
+    for result in results_df:
         results_df.loc[-1] = [result['rouge1'], result['rouge2'], result['rougeL'], result['rougeLsum']]
         results_df.index += 1
 
-    for prediction in predictions:
+    for prediction in predictions_df:
         predictions_df.loc[-1] = [prediction]
         predictions_df.index += 1
     
