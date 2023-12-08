@@ -7,7 +7,7 @@ import re
 from datasets import Dataset, DatasetDict
 from transformers import LlamaTokenizer, LlamaForCausalLM, DataCollatorForSeq2Seq, TrainingArguments, Trainer, BitsAndBytesConfig
 from peft import prepare_model_for_kbit_training, set_peft_model_state_dict, get_peft_model, LoraConfig, TaskType
-# from trl import SFTTrainer
+from trl import SFTTrainer
 
 def preprocessing_readme(readme):
     readme = re.sub(r"http\S+", "", readme)
@@ -37,7 +37,7 @@ def prompts(df):
 
 def formatting_func(sample):        
     inputs = [word for word in sample["prompt"]] 
-    model_inputs = tokenizer(inputs, max_length=1024, truncation=True)    
+    model_inputs = tokenizer(inputs, max_length=2048, truncation=True)    
     labels = tokenizer(text_target=sample["description"], max_length=128, truncation=True)                
     model_inputs["labels"] = labels["input_ids"]                                                                       
     return model_inputs
@@ -156,11 +156,14 @@ if __name__ == '__main__':
         push_to_hub=True
     )
     
-    trainer = Trainer(
+    trainer = SFTTrainer(
         model=model,
         args=training_args,
         train_dataset=tokenized_readme["train"],
         eval_dataset=tokenized_readme["val"],
+        peft_config=peft_config,
+        dataset_text_field="prompt",
+        max_seq_length=2048,
         tokenizer=tokenizer,
         data_collator=data_collator,
         compute_metrics=compute_metrics
