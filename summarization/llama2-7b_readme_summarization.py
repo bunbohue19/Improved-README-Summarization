@@ -25,20 +25,15 @@ def preprocessing_description(description):
     return description.strip()
 
 def formatting_func(sample):
-    prompt = f"""### Instruction:
-        Summarize the following README contents with LESS THAN 50 words. Your answer should be based on the provided README contents only:
+    return f"""### Instruction:
+        Summarize the following README contents with LESS THAN 50 words\
+        Your answer should be based on the provided README contents only.
+        
         ### README contents:
-        {sample["readme"]}
+        {sample["readme"].strip()}
+        
         ### Summary:
-        """
-    for word in prompt:
-        if word is None:
-            continue
-        inputs = [word for word in prompt]
-    model_inputs = tokenizer(inputs, max_length=4096, truncation=True)
-    labels = tokenizer(text_target=sample["description"], max_length=128, truncation=True)
-    model_inputs["labels"] = labels["input_ids"]                                                                         
-    return model_inputs
+        {sample["description"].strip()}"""
 
 if __name__ == '__main__':
     device = torch.device("cuda:0")
