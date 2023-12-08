@@ -12,7 +12,7 @@ def test(args):
     print(f"And device: {device}")
     
     # Load test set
-    test_df = pd.read_csv('./Improved-README-Summarization/dataset/test.csv', usecols=['readme', 'description'])
+    test_df = pd.read_csv('../dataset/test.csv', usecols=['readme', 'description'])
     
     # Load model directly
     tokenizer = AutoTokenizer.from_pretrained(checkpoint)
@@ -46,8 +46,7 @@ def test(args):
 
     ### Get the score per sample
     idx = 1
-    results = []
-    predictions = []
+    results, predictions = [], []
     for readme, description in zip(test_df['readme'], test_df['description']):
         inputs = tokenizer(prefix + readme, return_tensors="pt", truncation=True).input_ids.to(device)
         outputs = model.generate(inputs, max_new_tokens=128, do_sample=False)
@@ -72,23 +71,49 @@ def test(args):
 
         if idx == 5:
           break
- 
-    results_df = pd.DataFrame(data=results, columns=['ROUGE-1', 'ROUGE-2', 'ROUGE-L', 'ROUGE-LSUM'])
+
+    r1s, r2s, rls, rlsums = [], [], [], []
+    for result in results:
+        r1s.append(result['rouge1'])
+        r2s.append(result['rouge2'])
+        rls.append(result['rougeL'])
+        rlsums.append(result['rougeLsum'])
+
+    r1_df = pd.DataFrame(data=r1s, columns=['ROUGE-1'])
+    r2_df = pd.DataFrame(data=r2s, columns=['ROUGE-2'])
+    rl_df = pd.DataFrame(data=rls, columns=['ROUGE-L'])
+    rlsum_df = pd.DataFrame(data=rlsums, columns=['ROUGE-LSUM'])
+
     predictions_df = pd.DataFrame(data=predictions, columns=['prediction'])
     
-    for result in results_df:
-        results_df.loc[-1] = [result['rouge1'], result['rouge2'], result['rougeL'], result['rougeLsum']]
-        results_df.index += 1
-    results_df.index -= 1
+    for r1 in r1_df:
+        r1_df.loc[-1] = [r1]
+        r1_df.index += 1
+    r1_df.index -= 1
+
+    for r2 in r2_df:
+        r2_df.loc[-1] = [r1]
+        r2_df.index += 1
+    r2_df.index -= 1    
     
+    for rl in rl_df:
+        rl_df.loc[-1] = [r1]
+        rl_df.index += 1
+    rl_df.index -= 1
+
+    for rlsum in rlsum_df:
+        rlsum_df.loc[-1] = [r1]
+        rlsum_df.index += 1
+    rlsum_df.index -= 1
+
     for prediction in predictions_df:
         predictions_df.loc[-1] = [prediction]
         predictions_df.index += 1
     predictions_df.index -= 1
     
-    full_results_df = pd.concat([test_df, predictions_df, results_df], axis=1)
+    full_results_df = pd.concat([test_df, predictions_df, r1_df, r2_df, rl_df, rlsum_df], axis=1)
     full_results_df = full_results_df.dropna()
-    full_results_df.to_csv(f'./Improved-README-Summarization/results/result_{checkpoint.replace("bunbohue/", "")}.csv')
+    full_results_df.to_csv(f'../results/result_{checkpoint.replace("bunbohue/", "")}.csv')
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
