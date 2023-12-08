@@ -12,7 +12,7 @@ def test(args):
     print(f"And device: {device}")
     
     # Load test set
-    test_df = pd.read_csv('../dataset/test.csv', usecols=['readme', 'description'])
+    test_df = pd.read_csv('./Improved-README-Summarization/dataset/test.csv', usecols=['readme', 'description'])
     
     # Load model directly
     tokenizer = AutoTokenizer.from_pretrained(checkpoint)
@@ -69,9 +69,6 @@ def test(args):
         results.append(result)
         predictions.append(prediction)
 
-        if idx == 5:
-          break
-
     r1s, r2s, rls, rlsums = [], [], [], []
     for result in results:
         r1s.append(result['rouge1'])
@@ -113,7 +110,7 @@ def test(args):
     
     full_results_df = pd.concat([test_df, predictions_df, r1_df, r2_df, rl_df, rlsum_df], axis=1)
     full_results_df = full_results_df.dropna()
-    full_results_df.to_csv(f'../results/result_{checkpoint.replace("bunbohue/", "")}.csv')
+    full_results_df.to_csv(f'./Improved-README-Summarization/results/result_{checkpoint.replace("bunbohue/", "")}.csv')
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
