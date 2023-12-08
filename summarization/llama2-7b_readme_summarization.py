@@ -35,7 +35,7 @@ def formatting_func(sample):
         ### Summary:
         {sample["description"]}"""
 
-    model_inputs = tokenizer(prompt, max_length=4096, truncation=True, padding=True)
+    model_inputs = tokenizer(inputs, max_length=4096, truncation=True, padding=True)
     labels = tokenizer(text_target=sample["description"], max_length=128, truncation=True, padding=True)
     model_inputs["labels"] = labels["input_ids"]
     return model_inputs
@@ -133,7 +133,7 @@ if __name__ == '__main__':
         train_dataset=tokenized_readme["train"],
         eval_dataset=tokenized_readme["val"],
         peft_config=peft_config,
-        max_seq_length=2048,
+        max_seq_length=4096,
         tokenizer=tokenizer,
         formatting_func=formatting_func
     )
