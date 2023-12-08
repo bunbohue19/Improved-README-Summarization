@@ -162,7 +162,6 @@ if __name__ == '__main__':
         train_dataset=tokenized_readme["train"],
         eval_dataset=tokenized_readme["val"],
         peft_config=peft_config,
-        dataset_text_field="prompt",
         max_seq_length=2048,
         tokenizer=tokenizer,
         data_collator=data_collator,
