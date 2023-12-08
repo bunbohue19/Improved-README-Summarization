@@ -25,7 +25,7 @@ def preprocessing_description(description):
     return description.strip()
 
 def formatting_func(sample):
-    return f"""### Instruction:
+    prompt = f"""### Instruction:
         Summarize the following README contents with LESS THAN 50 words. Your answer should be based on the provided README contents only.
         ### README contents:
         {sample["readme"]}
@@ -35,9 +35,9 @@ def formatting_func(sample):
         if word is None:      
             continue            
         inputs = [word for word in prompt] 
-        model_inputs = tokenizer(inputs, max_length=4096, truncation=True)    
-        labels = tokenizer(text_target=sample["description"], max_length=128, truncation=True)                
-        model_inputs["labels"] = labels["input_ids"]                                                                       
+    model_inputs = tokenizer(inputs, max_length=4096, truncation=True)    
+    labels = tokenizer(text_target=sample["description"], max_length=128, truncation=True)                
+    model_inputs["labels"] = labels["input_ids"]                                                                       
     return model_inputs 
 
 if __name__ == '__main__':
