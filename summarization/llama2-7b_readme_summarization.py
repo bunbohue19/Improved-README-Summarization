@@ -3,26 +3,53 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import evaluate
+import re
 from datasets import Dataset, DatasetDict
 from transformers import LlamaTokenizer, LlamaForCausalLM, TrainingArguments, BitsAndBytesConfig
 from peft import prepare_model_for_kbit_training, set_peft_model_state_dict, get_peft_model, LoraConfig, TaskType
 from trl import SFTTrainer
 
-def formatting_func(example):
-    return f"""<s>### Instruction:
-        Summarize the following README contents.\
+def preprocessing_readme(readme):
+    readme = re.sub(r"http\S+", "", readme)
+    readme = re.sub(r"@[^\s]+", "", readme)
+    readme = re.sub(r"\s+", " ", readme)
+    readme = re.sub(r"#+", " ", readme)
+    readme = re.sub(r"\^[^ ]+", "", readme)
+    return readme
+
+def preprocessing_description(description):
+    if description.endswith('.'):
+        description = description[:-1]
+    description = re.sub(r"\. ", ", ", description)
+    return description + '.'
+
+def formatting_func(sample):
+    return f"""### Instruction:
+        Summarize the following README contents with LESS THAN 50 words\
         Your answer should be based on the provided README contents only.
         
         ### README contents:
-        {example["readme"]}
+        {sample["readme"].strip()}
         
         ### Summary:
-        {example["description"]}</s>"""
+        {sample["description"].strip()}"""
 
 if __name__ == '__main__':
     device = torch.device("cuda:0")
     train_df = pd.read_csv('../dataset/train.csv', usecols=['readme', 'description'])
     val_df = pd.read_csv('../dataset/validation.csv', usecols=['readme', 'description'])
+    
+    for i, sample in enumerate(train_df['readme']):
+        train_df.at[i, 'readme'] = preprocessing_readme(sample)
+    
+    for i, sample in enumerate(val_df['readme']):
+        val_df.at[i, 'readme'] = preprocessing_readme(sample)
+    
+    for i, sample in enumerate(train_df['description']):
+        train_df.at[i, 'description'] = preprocessing_description(sample)
+    
+    for i, sample in enumerate(val_df['description']):
+        val_df.at[i, 'description'] = preprocessing_description(sample)
     
     readme_dataset = DatasetDict({
         'train' : Dataset.from_pandas(train_df),
@@ -53,20 +80,25 @@ if __name__ == '__main__':
     peft_config = LoraConfig(
         task_type=TaskType.CAUSAL_LM,
         inference_mode=False,
-        r=8,
-        lora_alpha=16,
-        lora_dropout=0.05,
+        r=16,
+        lora_alpha=64,
+        lora_dropout=0.1,
         bias="none",
         target_modules=[
             "q_proj",
+            "up_proj",
+            "o_proj",
             "k_proj",
-            "v_proj",
-            "o_proj"
+            "down_proj",
+            "gate_proj",
+            "v_proj"
         ]
     )
     
     model = get_peft_model(model, peft_config)
     model.print_trainable_parameters()
+    
+    tokenized_readme = readme_dataset.map(function=formatting_func, batched=True)
     
     rouge = evaluate.load("rouge")
     
@@ -74,7 +106,8 @@ if __name__ == '__main__':
         output_dir="llama2-7b_readme_summarization",
         evaluation_strategy="epoch",
         save_strategy="epoch",
-        learning_rate=2e-5,
+        group_by_length=True,
+        learning_rate=1e-4,
         optim="paged_adamw_32bit",
         gradient_accumulation_steps=4,
         per_device_train_batch_size=4,
@@ -82,7 +115,7 @@ if __name__ == '__main__':
         save_total_limit=3,
         num_train_epochs=4,
         load_best_model_at_end=True,
-        fp16=False,
+        fp16=True,
         report_to="wandb",
         push_to_hub=True
     )
@@ -90,12 +123,11 @@ if __name__ == '__main__':
     trainer = SFTTrainer(
         model=model,
         args=training_args,
-        train_dataset=readme_dataset["train"],
-        eval_dataset=readme_dataset["val"],
+        train_dataset=tokenized_readme["train"],
+        eval_dataset=tokenized_readme["val"],
         peft_config=peft_config,
-        max_seq_length=1024,
+        max_seq_length=2048,
         tokenizer=tokenizer,
-        packing=True,
         formatting_func=formatting_func
     )
     
