@@ -24,20 +24,18 @@ def preprocessing_description(description):
     description = description + '.'
     return description.strip()
 
-def formatting_func(sample):
-    readme = sample["readme"]
-    description = sample["description"]
-    
-    prompt = f"""### Instruction:
+def prompt_format(readme):
+    return f"""### Instruction:
         Summarize the following README contents with LESS THAN 50 words. Your answer should be based on the provided README contents only.
         ### README contents:
         {readme}
         ### Summary:
         """
-        
-    inputs = [word for word in prompt] 
+
+def formatting_func(sample):        
+    inputs = [word for word in prompt_format(sample["readme"])] 
     model_inputs = tokenizer(inputs, max_length=4096, truncation=True)    
-    labels = tokenizer(text_target=description, max_length=128, truncation=True)                
+    labels = tokenizer(text_target=sample["description"], max_length=128, truncation=True)                
     model_inputs["labels"] = labels["input_ids"]                                                                       
     return model_inputs
 
