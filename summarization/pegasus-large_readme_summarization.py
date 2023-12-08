@@ -75,7 +75,7 @@ if __name__ == '__main__':
 
     prefix = "summarize: "
     tokenized_readme = readme_dataset.map(function=preprocess_function, batched=True)
-    data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=checkpoint, return_tensors="pt>
+    data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=checkpoint, return_tensors="pt")
     rouge = evaluate.load("rouge")
     
     training_args = Seq2SeqTrainingArguments(
