@@ -8,8 +8,6 @@ from peft import LoraConfig, PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments
 from trl import SFTTrainer
 
-def 
-
 def generate_training_prompt(readme: str, summary: str) -> str:
     return f"""### Instruction: Summarize the following README contents with LESS THAN 50 words. Your answer should be based on the provided README contents only.
 
