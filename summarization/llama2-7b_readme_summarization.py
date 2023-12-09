@@ -150,9 +150,10 @@ if __name__ == '__main__':
         train_dataset=tokenized_readme["train"],
         eval_dataset=tokenized_readme["val"],
         peft_config=peft_config,
-        dataset_text_field="prompt",
-        max_seq_length=4096,
+        max_seq_length=2048,
         tokenizer=tokenizer,
+        dataset_text_field="prompt",
+        formatting_func=formatting_func
     )
     
     trainer.train()
