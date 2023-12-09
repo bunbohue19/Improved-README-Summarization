@@ -10,7 +10,11 @@ from peft import LoraConfig, PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments
 from trl import SFTTrainer
 
-def generate_training_prompt(readme: str, summary: str, system_prompt: str) -> str:
+DEFAULT_SYSTEM_PROMPT = """
+    Summarize the following README contents with LESS THAN 50 words. Your answer should be based on the provided README contents only.
+""".strip()
+
+def generate_training_prompt(readme: str, summary: str, system_prompt: str = DEFAULT_SYSTEM_PROMPT) -> str:
     return f"""### Instruction: {system_prompt}
 
     ### README contents:
@@ -68,7 +72,7 @@ def create_model_and_tokenizer():
         use_auth_token=AUTH_TOKEN
     )
 
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME,use_auth_token=AUTH_TOKEN)
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_auth_token=AUTH_TOKEN)
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = "right"
 
@@ -93,10 +97,6 @@ if __name__ == "__main__":
     # DEFAULT_SYSTEM_PROMPT = """
     # Summarize the following text in only one sentence.
     # """.strip()
-
-    DEFAULT_SYSTEM_PROMPT = """
-    Summarize the following README contents with LESS THAN 50 words. Your answer should be based on the provided README contents only.
-    """.strip()
 
     # For access LLama2 pre-trained model in HuggingFace
     AUTH_TOKEN='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'
