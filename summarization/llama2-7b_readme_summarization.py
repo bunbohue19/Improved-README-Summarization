@@ -1,161 +1,173 @@
-import torch
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import evaluate
+import json
 import re
-from datasets import Dataset, DatasetDict
-from transformers import LlamaTokenizer, LlamaForCausalLM, TrainingArguments, BitsAndBytesConfig
-from peft import prepare_model_for_kbit_training, set_peft_model_state_dict, get_peft_model, LoraConfig, TaskType
+from pprint import pprint
+
+import pandas as pd
+import torch
+from datasets import Dataset, load_dataset, load_metric
+from huggingface_hub import notebook_login
+from peft import LoraConfig, PeftModel
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments
 from trl import SFTTrainer
 
-def preprocessing_readme(readme):
-    readme = re.sub(r"http\S+", "", readme)
-    readme = re.sub(r"@[^\s]+", "", readme)
-    readme = re.sub(r"\s+", " ", readme)
-    readme = re.sub(r"#+", " ", readme)
-    readme = re.sub(r"\^[^ ]+", "", readme)
-    return readme.strip()
+def generate_training_prompt(readme: str, summary: str, system_prompt: str = DEFAULT_SYSTEM_PROMPT) -> str:
+    return f"""### Instruction: {system_prompt}
 
-def preprocessing_description(description):
-    if description.endswith('.'):
-        description = description[:-1]
-    description = re.sub(r"\. ", ", ", description)
-    description = description + '.'
-    return description.strip()
+    ### README contents:
+    {readme.strip()}
 
-def prompts(df):
-    prompts = []
-    for readme, description in zip(df['readme'], df['description']):
-        prompts.append(f"""### Instruction:
-            Summarize the following README contents with LESS THAN 50 words. Your answer should be based on the provided README contents only.
-            ### README contents:
-            {readme}
-            ### Summary:
-            {description}
-            """)
-    return prompts
+    ### Summary:
+    {summary}
+    """.strip()
 
-def formatting_func(sample):        
+def process_description(s: str) -> str:
+    if s.endswith('.'):
+        s = s[:-1]
+        s = re.sub(r"\. ", ", ", s)
+    return s + '.'
+
+def clean_text(text):
+    text = re.sub(r"http\S+", "", text)
+    text = re.sub(r"@[^\s]+", "", text)
+    text = re.sub(r"\s+", " ", text)
+    text = re.sub(r"#+", " ", text)
+    return re.sub(r"\^[^ ]+", "", text)
+
+def generate_sample_with_prompt(entry):
+    readme = entry['readme']
+    readme = clean_text(readme)
+    description = process_description(entry['description'])
     return {
-        "readme": sample["readme"],
-        "description": sample["description"],
-        "prompt": sample["prompt"]
+        "formatted_readme": readme,
+        "summary": description,
+        "prompt_text": generate_training_prompt(readme, description),
     }
 
-if __name__ == '__main__':
-    device = torch.device("cuda:0")
-    train_df = pd.read_csv('../dataset/train.csv', usecols=['readme', 'description'])
-    val_df = pd.read_csv('../dataset/validation.csv', usecols=['readme', 'description'])
-    
-    for i, sample in enumerate(train_df['readme']):
-        train_df.at[i, 'readme'] = preprocessing_readme(sample)
-    
-    for i, sample in enumerate(val_df['readme']):
-        val_df.at[i, 'readme'] = preprocessing_readme(sample)
-    
-    for i, sample in enumerate(train_df['description']):
-        train_df.at[i, 'description'] = preprocessing_description(sample)
-    
-    for i, sample in enumerate(val_df['description']):
-        val_df.at[i, 'description'] = preprocessing_description(sample)
-    
-    train_prompts_df = pd.DataFrame(data=prompts(train_df), columns=['prompt'])
-    val_prompts_df = pd.DataFrame(data=prompts(val_df), columns=['prompt'])
-
-    for prompt in train_prompts_df:
-        train_prompts_df.loc[-1] = [prompt]
-        train_prompts_df.index += 1
-    train_prompts_df.index -= 1
-
-    for prompt in val_prompts_df:
-        val_prompts_df.loc[-1] = [prompt]
-        val_prompts_df.index += 1
-    val_prompts_df.index -= 1
-    
-    new_train_df = pd.concat([train_df, train_prompts_df], axis=1).dropna()
-    new_val_df = pd.concat([val_df, val_prompts_df], axis=1).dropna()
-    
-    readme_dataset = DatasetDict({
-        'train' : Dataset.from_pandas(new_train_df),
-        'val'  : Dataset.from_pandas(new_val_df)
-    })
-    
-    bnb_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_use_double_quant=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16
-    )
-    
-    checkpoint = "meta-llama/Llama-2-7b-hf"
-    tokenizer = LlamaTokenizer.from_pretrained(checkpoint)
-    tokenizer.pad_token = tokenizer.eos_token
-    tokenizer.padding_side = "right"
-    
-    model = LlamaForCausalLM.from_pretrained(
-        checkpoint, 
-        quantization_config=bnb_config,
-        use_cache=False,
-        device_map={"":0}
-    )
-    model.gradient_checkpointing_enable()
-    model = prepare_model_for_kbit_training(model)
-    
-    peft_config = LoraConfig(
-        task_type=TaskType.CAUSAL_LM,
-        inference_mode=False,
-        r=16,
-        lora_alpha=64,
-        lora_dropout=0.1,
-        bias="none",
-        target_modules=[
-            "q_proj",
-            "up_proj",
-            "o_proj",
-            "k_proj",
-            "down_proj",
-            "gate_proj",
-            "v_proj"
+def process_dataset(data: Dataset):
+    return data.shuffle(seed=42).map(generate_sample_with_prompt).remove_columns(
+        [
+            "readme",
+            "description",
+            "prompt",
         ]
     )
+
+def create_model_and_tokenizer():
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.float16,
+    )
+
+    model = AutoModelForCausalLM.from_pretrained(
+        MODEL_NAME,
+        use_safetensors=True,
+        quantization_config=bnb_config,
+        trust_remote_code=True,
+        device_map="auto",
+        use_auth_token=AUTH_TOKEN
+    )
+
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME,use_auth_token=AUTH_TOKEN)
+    tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.padding_side = "right"
+
+    return model, tokenizer
+
+if __name__ == "__main__":
+    DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
+    MODEL_NAME = "meta-llama/Llama-2-7b-hf"
+
+    # You need to change this parameter according to your real path.
+    OUTPUT_DIR = "./llama2-7b_readme_summarization"
+    train_csv_file = '../dataset/train.csv'
+    val_csv_file = '../dataset/validation.csv'
+    # DEFAULT_SYSTEM_PROMPT = """
+    # Write a one-sentence summary of the following text.
+    # """.strip()
+
+    # DEFAULT_SYSTEM_PROMPT = """
+    # Write a summary of the following text.
+    # """.strip()
+
+    # DEFAULT_SYSTEM_PROMPT = """
+    # Summarize the following text in only one sentence.
+    # """.strip()
+
+    DEFAULT_SYSTEM_PROMPT = """
+    Summarize the following README contents with LESS THAN 50 words. Your answer should be based on the provided README contents only.
+    """.strip()
+
+    # For access LLama2 pre-trained model in HuggingFace
+    AUTH_TOKEN='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'
+    train_df = pd.read_csv(train_csv_file, usecols=['readme', 'description'])
+    val_df = pd.read_csv(val_csv_file, usecols=['readme', 'description'])
+
+    train_dataset = Dataset.from_pandas(train_df)
+    val_dataset = Dataset.from_pandas(val_df)
     
-    model = get_peft_model(model, peft_config)
-    model.print_trainable_parameters()
+    processed_train_dataset = process_dataset(train_dataset)
+    processed_val_dataset = process_dataset(val_dataset)
     
-    tokenized_readme = readme_dataset.map(function=formatting_func, batched=True)
-    rouge = evaluate.load("rouge")
+    model, tokenizer = create_model_and_tokenizer()
+    model.config.use_cache = False
+    model.config.quantization_config.to_dict()
     
-    training_args = TrainingArguments(
-        output_dir="llama2-7b_readme_summarization",
-        evaluation_strategy="epoch",
+    lora_r = 16
+    lora_alpha = 64
+    lora_dropout = 0.1
+    lora_target_modules = [
+        "q_proj",
+        "up_proj",
+        "o_proj",
+        "k_proj",
+        "down_proj",
+        "gate_proj",
+        "v_proj",
+    ]
+
+
+    peft_config = LoraConfig(
+        r=lora_r,
+        lora_alpha=lora_alpha,
+        lora_dropout=lora_dropout,
+        target_modules=lora_target_modules,
+        bias="none",
+        task_type="CAUSAL_LM",
+    )
+
+    training_arguments = TrainingArguments(
+        per_device_train_batch_size=8,
+        per_device_eval_batch_size=8,
+        gradient_accumulation_steps=4,
+        optim="paged_adamw_32bit",
+        logging_steps=10,
+        learning_rate=1e-4,
+        fp16=True,
+        max_grad_norm=0.3,
+        num_train_epochs=4,
+        warmup_ratio=0.05,
         save_strategy="epoch",
         group_by_length=True,
-        learning_rate=1e-4,
-        optim="paged_adamw_32bit",
-        gradient_accumulation_steps=4,
-        per_device_train_batch_size=4,
-        per_device_eval_batch_size=4,
-        save_total_limit=3,
-        num_train_epochs=4,
-        load_best_model_at_end=True,
-        fp16=True,
-        report_to="wandb",
+        output_dir=OUTPUT_DIR,
+        report_to="none",
+        save_safetensors=True,
+        lr_scheduler_type="cosine",
+        seed=42,
         push_to_hub=True
     )
-    
+
     trainer = SFTTrainer(
         model=model,
-        args=training_args,
-        train_dataset=tokenized_readme["train"],
-        eval_dataset=tokenized_readme["val"],
+        train_dataset=processed_train_dataset,
+        eval_dataset=processed_val_dataset,
         peft_config=peft_config,
+        dataset_text_field="prompt_text",
         max_seq_length=2048,
         tokenizer=tokenizer,
-        dataset_text_field="prompt",
-        formatting_func=formatting_func
+        args=training_arguments,
     )
     
     trainer.train()
-    
+    trainer.save_model()
     trainer.push_to_hub()
