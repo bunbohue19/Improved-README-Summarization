@@ -10,7 +10,7 @@ from peft import LoraConfig, PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments
 from trl import SFTTrainer
 
-def generate_training_prompt(readme: str, summary: str, system_prompt: str = DEFAULT_SYSTEM_PROMPT) -> str:
+def generate_training_prompt(readme: str, summary: str, system_prompt: str) -> str:
     return f"""### Instruction: {system_prompt}
 
     ### README contents:
