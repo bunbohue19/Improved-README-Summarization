@@ -2,6 +2,8 @@ import re
 from pprint import pprint
 import pandas as pd
 import torch
+from markdown import markdown
+from bs4 import BeautifulSoup
 from datasets import Dataset, load_dataset, load_metric
 from huggingface_hub import notebook_login
 from peft import LoraConfig, PeftModel
@@ -17,6 +19,19 @@ def generate_training_prompt(readme: str, summary: str) -> str:
     ### Summary:
     {summary}
     """.strip()
+
+# Function to remove tags
+def format_entry(md_data) :
+    html = markdown(md_data)
+    # parse html content
+    soup = BeautifulSoup(html, "html.parser")
+    for a in soup. findAll('a', href=True):
+        a.decompose()
+    for data in soup(['style', 'script', 'img', 'pre', 'code']):
+        # Remove tags
+        data.decompose()
+    # return data by retrieving the tag content
+    return ' '.join(soup.stripped_strings)
 
 def process_description(s: str) -> str:
     if s.endswith('.'):
@@ -65,23 +80,31 @@ if __name__ == "__main__":
     train_df = pd.read_csv(train_csv_file, usecols=['readme', 'description'])
     val_df = pd.read_csv(val_csv_file, usecols=['readme', 'description'])
 
+    for i, readme in enumerate(train_df['readme']):
+        train_df.at[i, 'readme'] = format_entry(readme)
+
+    for i, readme in enumerate(val_df['readme']):
+        val_df.at[i, 'readme'] = format_entry(readme)
+
     train_dataset = Dataset.from_pandas(train_df)
     val_dataset = Dataset.from_pandas(val_df)
     
     processed_train_dataset = process_dataset(train_dataset)
     processed_val_dataset = process_dataset(val_dataset)
     
-    # model, tokenizer = create_model_and_tokenizer()
-    # model.config.use_cache = False
-    
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_auth_token=AUTH_TOKEN)
+    tokenizer = AutoTokenizer.from_pretrained(
+        MODEL_NAME, 
+        use_auth_token=AUTH_TOKEN, 
+        truncation=True
+    )
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = "right"
     
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
+        bnb_4bit_use_double_quant=True,
         bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.float16,
+        bnb_4bit_compute_dtype=torch.float16
     )
 
     model = AutoModelForCausalLM.from_pretrained(
@@ -117,15 +140,15 @@ if __name__ == "__main__":
     )
 
     training_arguments = TrainingArguments(
-        per_device_train_batch_size=2,
-        per_device_eval_batch_size=2,
+        per_device_train_batch_size=1,
+        per_device_eval_batch_size=1,
         gradient_accumulation_steps=2,
         optim="paged_adamw_32bit",
         logging_steps=10,
         learning_rate=1e-4,
         fp16=True,
         max_grad_norm=0.3,
-        num_train_epochs=4,
+        num_train_epochs=2,
         warmup_ratio=0.05,
         save_strategy="epoch",
         group_by_length=True,

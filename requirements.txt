@@ -15,3 +15,4 @@ wandb
 argparse
 trl
 beautifulsoup4
+markdown
