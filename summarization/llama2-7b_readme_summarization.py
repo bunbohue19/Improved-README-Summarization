@@ -52,7 +52,6 @@ def process_dataset(data: Dataset):
         [
             "readme",
             "description",
-            "prompt",
         ]
     )
 
