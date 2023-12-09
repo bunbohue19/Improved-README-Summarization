@@ -86,17 +86,6 @@ if __name__ == "__main__":
     OUTPUT_DIR = "./llama2-7b_readme_summarization"
     train_csv_file = '../dataset/train.csv'
     val_csv_file = '../dataset/validation.csv'
-    # DEFAULT_SYSTEM_PROMPT = """
-    # Write a one-sentence summary of the following text.
-    # """.strip()
-
-    # DEFAULT_SYSTEM_PROMPT = """
-    # Write a summary of the following text.
-    # """.strip()
-
-    # DEFAULT_SYSTEM_PROMPT = """
-    # Summarize the following text in only one sentence.
-    # """.strip()
 
     # For access LLama2 pre-trained model in HuggingFace
     AUTH_TOKEN='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'
