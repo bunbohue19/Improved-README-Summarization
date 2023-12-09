@@ -1,7 +1,5 @@
-import json
 import re
 from pprint import pprint
-
 import pandas as pd
 import torch
 from datasets import Dataset, load_dataset, load_metric
@@ -9,6 +7,8 @@ from huggingface_hub import notebook_login
 from peft import LoraConfig, PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments
 from trl import SFTTrainer
+
+def 
 
 def generate_training_prompt(readme: str, summary: str) -> str:
     return f"""### Instruction: Summarize the following README contents with LESS THAN 50 words. Your answer should be based on the provided README contents only.
@@ -51,28 +51,6 @@ def process_dataset(data: Dataset):
         ]
     )
 
-def create_model_and_tokenizer():
-    bnb_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.float16,
-    )
-
-    model = AutoModelForCausalLM.from_pretrained(
-        MODEL_NAME,
-        use_safetensors=True,
-        quantization_config=bnb_config,
-        trust_remote_code=True,
-        device_map="auto",
-        use_auth_token=AUTH_TOKEN
-    )
-
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_auth_token=AUTH_TOKEN)
-    tokenizer.pad_token = tokenizer.eos_token
-    tokenizer.padding_side = "right"
-
-    return model, tokenizer
-
 if __name__ == "__main__":
     DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
     MODEL_NAME = "meta-llama/Llama-2-7b-hf"
@@ -95,9 +73,27 @@ if __name__ == "__main__":
     processed_train_dataset = process_dataset(train_dataset)
     processed_val_dataset = process_dataset(val_dataset)
     
-    model, tokenizer = create_model_and_tokenizer()
-    model.config.use_cache = False
-    model.config.quantization_config.to_dict()
+    # model, tokenizer = create_model_and_tokenizer()
+    # model.config.use_cache = False
+    
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_auth_token=AUTH_TOKEN)
+    tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.padding_side = "right"
+    
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.float16,
+    )
+
+    model = AutoModelForCausalLM.from_pretrained(
+        MODEL_NAME,
+        use_safetensors=True,
+        quantization_config=bnb_config,
+        trust_remote_code=True,
+        device_map="auto",
+        use_auth_token=AUTH_TOKEN
+    )
     
     lora_r = 16
     lora_alpha = 64
