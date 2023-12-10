@@ -67,6 +67,8 @@ if __name__ == "__main__":
         use_auth_token=AUTH_TOKEN, 
         truncation=True
     )
+    tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.padding_side = "right"
     
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_NAME,
