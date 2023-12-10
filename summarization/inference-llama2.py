@@ -43,7 +43,7 @@ def process_description(s: str) -> str:
     return s + '.'
 
 if __name__ == "__main__":
-    DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
+    DEVICE = torch.device("cuda:0") if torch.cuda.is_available() else "cpu"
     MODEL_NAME = "meta-llama/Llama-2-7b-hf"
     AUTH_TOKEN='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'
     OUTPUT_DIR = "./llama2-7b_readme_summarization"
