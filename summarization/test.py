@@ -23,7 +23,7 @@ def test(args):
     rouge = evaluate.load("rouge")
 
     # Evaluate in test set
-    predictions, references = [], []
+    # predictions, references = [], []
 
     prefix = "summarize: "
     

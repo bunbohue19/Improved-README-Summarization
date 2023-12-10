@@ -25,7 +25,7 @@ def format_entry(md_data) :
     html = markdown(md_data)
     # parse html content
     soup = BeautifulSoup(html, "html.parser")
-    for a in soup. findAll('a', href=True):
+    for a in soup.findAll('a', href=True):
         a.decompose()
     for data in soup(['style', 'script', 'img', 'pre', 'code']):
         # Remove tags
