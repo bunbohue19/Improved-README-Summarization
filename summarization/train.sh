@@ -1,4 +1,4 @@
- # Set access tokens
+# Set access tokens
 huggingface-cli login --token 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
 
 # Specify the cache directory

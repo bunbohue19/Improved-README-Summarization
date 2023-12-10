@@ -36,6 +36,12 @@ def clean_text(text):
     text = re.sub(r"#+", " ", text)
     return re.sub(r"\^[^ ]+", "", text)
 
+def process_description(s: str) -> str:
+    if s.endswith('.'):
+        s = s[:-1]
+        s = re.sub(r"\. ", ", ", s)
+    return s + '.'
+
 if __name__ == "__main__":
     DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
     MODEL_NAME = "meta-llama/Llama-2-7b-hf"
@@ -74,10 +80,9 @@ if __name__ == "__main__":
     model = PeftModel.from_pretrained(model, OUTPUT_DIR)
     
     samples = []
-    for entry in test_df:
-        readme = entry['readme']
+    for readme, description in zip(test_df['readme'], test_df['description']):
         readme = clean_text(readme)
-        description = entry['description']
+        description = process_description(description)
 
         sample = {
             "readme": readme,
@@ -96,11 +101,12 @@ if __name__ == "__main__":
     idx = 1
     results, predictions = [], []
     for prompt, description in zip(results_df['prompt'], results_df['description']):
-        inputs = tokenizer(prompt, return_tensors="pt").input_ids.to(DEVICE)
-        generate_ids = model.generate(inputs)
-        outputs = tokenizer.batch_decode(generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0].strip()
-        
-        prediction = outputs
+        inputs = tokenizer(prompt, return_tensors="pt").to(DEVICE)
+        inputs_length = len(inputs["input_ids"][0])
+        with torch.inference_mode():
+            outputs = model.generate(**inputs, max_new_tokens=100, temperature=0.0001)
+            
+        prediction = tokenizer.decode(outputs[0][inputs_length:], skip_special_tokens=True)
         reference = description
             
         result = rouge.compute(predictions=[prediction], references=[reference])
