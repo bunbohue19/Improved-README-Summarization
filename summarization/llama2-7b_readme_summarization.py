@@ -1,17 +1,15 @@
 import re
-from pprint import pprint
 import pandas as pd
 import torch
 from markdown import markdown
 from bs4 import BeautifulSoup
-from datasets import Dataset, load_dataset, load_metric
-from huggingface_hub import notebook_login
-from peft import LoraConfig, PeftModel
+from datasets import Dataset
+from peft import LoraConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments
 from trl import SFTTrainer
 
 def generate_training_prompt(readme: str, summary: str) -> str:
-    return f"""### Instruction: Summarize the following README contents with LESS THAN 50 words. Your answer should be based on the provided README contents only.
+    return f"""### Instruction: Summarize the following README contents with LESS THAN {len(summary)} words. Your answer should be based on the provided README contents only.
 
     ### README contents:
     {readme.strip()}
@@ -166,7 +164,7 @@ if __name__ == "__main__":
         eval_dataset=processed_val_dataset,
         peft_config=peft_config,
         dataset_text_field="prompt_text",
-        max_seq_length=2048,
+        max_seq_length=4096,
         tokenizer=tokenizer,
         args=training_arguments,
     )
