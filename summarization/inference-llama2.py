@@ -103,7 +103,7 @@ if __name__ == "__main__":
     idx = 1
     results, predictions = [], []
     for prompt, description in zip(results_df['prompt'], results_df['description']):
-        inputs = tokenizer(prompt, return_tensors="pt").to(DEVICE)
+        inputs = tokenizer(prompt, max_length=4096, padding=True, truncation=True, return_tensors="pt").to(DEVICE)
         inputs_length = len(inputs["input_ids"][0])
         with torch.inference_mode():
             outputs = model.generate(**inputs, max_new_tokens=100, temperature=0.0001)
