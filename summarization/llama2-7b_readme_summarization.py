@@ -9,13 +9,12 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from trl import SFTTrainer
 
 def generate_training_prompt(readme: str, summary: str) -> str:
-    return f"""### Instruction: Summarize the following README contents with LESS THAN {len(summary)} words. Your answer should be based on the provided README contents only.
+    return f"""### Instruction: Summarize the following text with ABOUT {len(summary)} words.
 
     ### README contents:
     {readme.strip()}
 
     ### Summary:
-    {summary}
     """.strip()
 
 # Function to remove tags

@@ -8,7 +8,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from peft import PeftModel
 
 def generate_testing_prompt(readme: str, description: str) -> str:
-    return f"""### Instruction: Summarize the following README contents with LESS THAN {len(description)} words. Your answer should be based on the provided README contents only.
+    return f"""### Instruction: Summarize the following text with ABOUT {len(description)} words. Your answer should be based on the provided text only.
 
     ### README contents:
     {readme.strip()}
