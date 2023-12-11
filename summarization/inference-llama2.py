@@ -7,8 +7,8 @@ from bs4 import BeautifulSoup
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from peft import PeftModel
 
-def generate_testing_prompt(readme: str, description: str) -> str:
-    return f"""### Instruction: Summarize the following text with ABOUT {len(description)} words. Your answer should be based on the provided text only.
+def generate_testing_prompt(readme: str) -> str:
+    return f"""### Instruction: Summarize the following README contents with LESS THAN 30 words. Your answer should be based on the provided README contents only.
 
     ### README contents:
     {readme.strip()}
@@ -89,7 +89,7 @@ if __name__ == "__main__":
         sample = {
             "readme": readme,
             "description": description,
-            "prompt": generate_testing_prompt(readme, description),
+            "prompt": generate_testing_prompt(readme),
         }
         samples.append(sample)
     results_df = pd.DataFrame(samples)

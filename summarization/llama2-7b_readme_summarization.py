@@ -9,12 +9,13 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from trl import SFTTrainer
 
 def generate_training_prompt(readme: str, summary: str) -> str:
-    return f"""### Instruction: Summarize the following text with ABOUT {len(summary)} words.
+    return f"""### Instruction: Summarize the following README contents with LESS THAN 30 words. Your answer should be based on the provided README contents only.
 
     ### README contents:
     {readme.strip()}
 
     ### Summary:
+    {summary}
     """.strip()
 
 # Function to remove tags
@@ -163,7 +164,7 @@ if __name__ == "__main__":
         eval_dataset=processed_val_dataset,
         peft_config=peft_config,
         dataset_text_field="prompt_text",
-        max_seq_length=4096,
+        max_seq_length=2048,
         tokenizer=tokenizer,
         args=training_arguments,
     )
