@@ -1,5 +1,4 @@
 import argparse
-import torch
 import pandas as pd
 import evaluate
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
