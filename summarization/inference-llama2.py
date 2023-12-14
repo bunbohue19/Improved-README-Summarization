@@ -7,12 +7,49 @@ from bs4 import BeautifulSoup
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from peft import PeftModel
 
-def generate_testing_prompt(readme: str) -> str:
-    return f"""### Instruction: Summarize the following README contents with LESS THAN 30 words. Your answer should be based on the provided README contents only.
+"""
+    Return item and drop from frame. Raise KeyError if not found.
+"""
+def pop(df : pd.DataFrame, idx : int):
+    readme = df['readme'][idx]
+    description = df['description'][idx]
+    result = {'readme' : readme, 'description' : description}
+    df['readme'][idx]
+    df['description'][idx]
+    try:
+        result._reset_cacher()
+    except AttributeError:
+        pass
 
+    return result
+
+## Zero-shot
+# def generate_testing_prompt(readme):
+#     return f"""### Instruction: Summarize the following README contents with LESS THAN 30 words. Your answer should be based on the provided README contents only.
+
+#     ### README contents:
+#     {readme.strip()}
+
+#     ### Summary:
+#     """.strip()
+
+## Three-shots
+def generate_testing_prompt(shot_1, shot_2, shot_3, readme):
+    return f"""
     ### README contents:
-    {readme.strip()}
-
+    {shot_1['readme'].strip()}
+    ### Summary:
+    {shot_1['description'].strip()}
+    ### README contents:
+    {shot_2['readme'].strip()}
+    ### Summary:
+    {shot_2['description'].strip()}
+    ### README contents:
+    {shot_3['readme'].strip()}
+    ### Summary:
+    {shot_3['description'].strip()}
+    ### README contents:
+    {readme['readme'].strip()}
     ### Summary:
     """.strip()
 
@@ -55,6 +92,11 @@ if __name__ == "__main__":
     for i, readme in enumerate(test_df['readme']):
         test_df.at[i, 'readme'] = format_entry(readme)
 
+    # Choose best 3 results in zero-shot
+    shot_1 = pop(test_df, 10)
+    shot_2 = pop(test_df, 42)
+    shot_3 = pop(test_df, 44)
+    
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_use_double_quant=True,
@@ -168,4 +210,5 @@ if __name__ == "__main__":
     
     full_results_df = pd.concat([results_df, predictions_df, r1_df, r2_df, rl_df, rlsum_df], axis=1)
     full_results_df = full_results_df.dropna()
-    full_results_df.to_csv('../results/result_llama2-7b_readme_summarization.csv')
+    # full_results_df.to_csv('../results/result_llama2-7b-zero-shot_readme_summarization.csv')
+    full_results_df.to_csv('../results/result_llama2-7b-three-shots_readme_summarization.csv')
