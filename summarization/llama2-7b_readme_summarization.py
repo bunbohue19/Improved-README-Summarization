@@ -68,7 +68,7 @@ if __name__ == "__main__":
     # MODEL_NAME = "meta-llama/Llama-2-7b-chat-hf"
 
     # You need to change this parameter according to your real path.
-    OUTPUT_DIR = "./llama2-7b_readme_summarization"
+    OUTPUT_DIR = "./llama2-7b-chat_readme_summarization"
     train_csv_file = '../dataset/train.csv'
     val_csv_file = '../dataset/validation.csv'
 
