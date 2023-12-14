@@ -57,7 +57,8 @@ def process_description(s: str) -> str:
 
 if __name__ == "__main__":
     DEVICE = torch.device("cuda:0") if torch.cuda.is_available() else "cpu"
-    MODEL_NAME = "meta-llama/Llama-2-7b-hf"
+    # MODEL_NAME = "meta-llama/Llama-2-7b-hf"
+    # MODEL_NAME = "meta-llama/Llama-2-7b-chat-hf"
     AUTH_TOKEN='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'
     OUTPUT_DIR = "./llama2-7b_readme_summarization"
     test_csv_file = '../dataset/test.csv'
