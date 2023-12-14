@@ -1,5 +1,6 @@
 import re
 import torch
+import numpy as np
 import pandas as pd
 import evaluate
 from markdown import markdown
@@ -44,7 +45,7 @@ def generate_testing_prompt(shot_1, shot_2, shot_3, readme):
     ### Summary:
     {shot_3['description'].strip()}
     ### README contents:
-    {readme['readme'].strip()}
+    {readme.strip()}
     ### Summary:
     """.strip()
 
