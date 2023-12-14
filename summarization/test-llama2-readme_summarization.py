@@ -68,13 +68,6 @@ if __name__ == "__main__":
 
     for i, readme in enumerate(test_df['readme']):
         test_df.at[i, 'readme'] = format_entry(readme)
-
-    # Choose best 3 results in zero-shot
-    shot_1 = pop(test_df, 10)
-    shot_2 = pop(test_df, 42)
-    shot_3 = pop(test_df, 44)
-    
-    test_df = test_df.dropna()
     
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
