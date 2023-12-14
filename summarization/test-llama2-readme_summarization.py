@@ -19,33 +19,13 @@ def pop(df : pd.DataFrame, idx : int):
     df.at[idx, 'description'] = np.nan
     return result
 
-## Zero-shot
-# def generate_testing_prompt(readme):
-#     return f"""### Instruction: Summarize the following README contents with LESS THAN 30 words. Your answer should be based on the provided README contents only.
+# Zero-shot
+def generate_testing_prompt(readme):
+    return f"""### Instruction: Summarize the following README contents with LESS THAN 30 words. Your answer should be based on the provided README contents only.
 
-#     ### README contents:
-#     {readme.strip()}
-
-#     ### Summary:
-#     """.strip()
-
-## Three-shots
-def generate_testing_prompt(shot_1, shot_2, shot_3, readme):
-    return f"""
-    ### README contents:
-    {shot_1['readme'].strip()}
-    ### Summary:
-    {shot_1['description'].strip()}
-    ### README contents:
-    {shot_2['readme'].strip()}
-    ### Summary:
-    {shot_2['description'].strip()}
-    ### README contents:
-    {shot_3['readme'].strip()}
-    ### Summary:
-    {shot_3['description'].strip()}
     ### README contents:
     {readme.strip()}
+
     ### Summary:
     """.strip()
 
@@ -129,7 +109,7 @@ if __name__ == "__main__":
         sample = {
             "readme": readme,
             "description": description,
-            "prompt": generate_testing_prompt(shot_1, shot_2, shot_3, readme),
+            "prompt": generate_testing_prompt(readme),
         }
         samples.append(sample)
     results_df = pd.DataFrame(samples)
@@ -208,5 +188,4 @@ if __name__ == "__main__":
     
     full_results_df = pd.concat([results_df, predictions_df, r1_df, r2_df, rl_df, rlsum_df], axis=1)
     full_results_df = full_results_df.dropna()
-    # full_results_df.to_csv('../results/result_llama2-7b-zero-shot_readme_summarization.csv')
-    full_results_df.to_csv('../results/result_llama2-7b-three-shots_readme_summarization.csv')
+    full_results_df.to_csv('../results/result_llama2-7b-zero-shot_readme_summarization.csv')

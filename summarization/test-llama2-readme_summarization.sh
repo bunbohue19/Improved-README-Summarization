@@ -9,5 +9,5 @@ export CUDA_VISIBLE_DEVICES="0"
 # Disable tokenizers parallelism
 # export TOKENIZERS_PARALLELISM=false
 
-# Inference
-python inference-llama2.py
+# Test
+python test-llama2.py
