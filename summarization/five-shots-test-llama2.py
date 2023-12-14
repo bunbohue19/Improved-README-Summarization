@@ -18,7 +18,7 @@ def pop(df : pd.DataFrame, idx : int):
     df.at[idx, 'description'] = np.nan
     return result
 
-## Five-shots
+## 5-shots
 def generate_testing_prompt(shot_1, shot_2, shot_3, shot_4, shot_5, readme):
     return f"""
     ### README contents:
