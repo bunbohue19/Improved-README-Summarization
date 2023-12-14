@@ -14,13 +14,8 @@ def pop(df : pd.DataFrame, idx : int):
     readme = df['readme'][idx]
     description = df['description'][idx]
     result = {'readme' : readme, 'description' : description}
-    df['readme'][idx]
-    df['description'][idx]
-    try:
-        result._reset_cacher()
-    except AttributeError:
-        pass
-
+    df.at[idx, 'readme'] = np.nan
+    df.at[idx, 'description'] = np.nan
     return result
 
 ## Zero-shot
@@ -97,6 +92,8 @@ if __name__ == "__main__":
     shot_2 = pop(test_df, 42)
     shot_3 = pop(test_df, 44)
     
+    test_df = test_df.dropna()
+    
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_use_double_quant=True,
@@ -131,7 +128,7 @@ if __name__ == "__main__":
         sample = {
             "readme": readme,
             "description": description,
-            "prompt": generate_testing_prompt(readme),
+            "prompt": generate_testing_prompt(shot_1, shot_2, shot_3, readme),
         }
         samples.append(sample)
     results_df = pd.DataFrame(samples)
