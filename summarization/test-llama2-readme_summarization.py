@@ -140,8 +140,8 @@ def test(args):
     
     samples = []
     for readme, description in zip(test_df['readme'], test_df['description']):
-        readme = clean_text(readme)
-        description = process_description(description)
+        readme = clean_text(str(readme))
+        description = process_description(str(description))
 
         sample = {
             "readme": readme,
