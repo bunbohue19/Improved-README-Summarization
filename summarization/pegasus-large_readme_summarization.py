@@ -14,7 +14,7 @@ def preprocess_function(examples):
         inputs = [prefix + doc for doc in examples["readme"]]
         # inputs = [doc for doc in examples["readme"]]  
     # inputs = examples["readme"]
-    model_inputs = tokenizer(inputs, max_length=1024, truncation=True, padding='max_length', return_>
+    model_inputs = tokenizer(inputs, max_length=1024, truncation=True, padding='max_length', return_tensors="pt")
     # model_inputs = model_inputs.to(device)
     
     labels = tokenizer(text_target=examples["description"], max_length=128, truncation=True)

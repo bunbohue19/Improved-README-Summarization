@@ -1,3 +1,4 @@
+import argparse
 import re
 import torch
 import numpy as np
@@ -19,16 +20,38 @@ def pop(df : pd.DataFrame, idx : int):
     df.at[idx, 'description'] = np.nan
     return result
 
-# Zero-shot
-def generate_testing_prompt(readme):
-    return f"""### Instruction: Summarize the following README contents with LESS THAN 30 words. Your answer should be based on the provided README contents only.
+# Few-shots prompting
+def generate_testing_prompt(readme, shots):
+    if len(shots) == 0:
+        return f"""### Instruction: Summarize the following README contents with LESS THAN 30 words. Your answer should be based on the provided README contents only.
 
-    ### README contents:
-    {readme.strip()}
+        ### README contents:
+        {readme.strip()}
 
-    ### Summary:
-    """.strip()
+        ### Summary:
+        """.strip()
+    else:
+        prompt = """### Instruction: Summarize the following README contents with LESS THAN 30 words. Your answer should be based on the provided README contents only.
+        ### For examples:
+        """
+        
+        for i in range(len(shots)):
+            prompt += f""" 
+            ### README contents: 
+            {shots[i]['readme'].strip()}
+            
+            ### Summary:
+            {shots[i]['description'].strip()}            
+            """
 
+        prompt += f"""
+        ### README contents:
+        {readme.strip()}
+
+        ### Summary:
+        """.strip()
+        return prompt
+        
 # Function to remove tags
 def format_entry(md_data) :
     html = markdown(md_data)
@@ -55,19 +78,40 @@ def process_description(s: str) -> str:
         s = re.sub(r"\. ", ", ", s)
     return s + '.'
 
-if __name__ == "__main__":
+def test(args):
+    
+    is_chat = f"{args.is_chat}"
+    num_of_shots = int(args.shots)    
+    
     DEVICE = torch.device("cuda:0") if torch.cuda.is_available() else "cpu"
-    # MODEL_NAME = "meta-llama/Llama-2-7b-hf"
-    MODEL_NAME = "meta-llama/Llama-2-7b-chat-hf"
+    MODEL_NAME = "meta-llama/Llama-2-7b-hf" if is_chat == "false" else "meta-llama/Llama-2-7b-chat-hf"
     AUTH_TOKEN='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'
-    OUTPUT_DIR = "./llama2-7b_readme_summarization"
+    OUTPUT_DIR = "./llama2-7b_readme_summarization" if is_chat == "false" else "./llama2-7b-chat_readme_summarization"
     test_csv_file = '../dataset/test.csv'
     
     # Read data
     test_df = pd.read_csv(test_csv_file, usecols=['readme', 'description'])
-
+    
     for i, readme in enumerate(test_df['readme']):
         test_df.at[i, 'readme'] = format_entry(readme)
+    
+    shots = []
+    if num_of_shots == 0:
+        pass
+    elif num_of_shots == 1:
+        shots.append(pop(test_df, 8))
+    elif num_of_shots == 2:
+        shots.append(pop(test_df, 8))
+        shots.append(pop(test_df, 10))
+    elif num_of_shots == 3:
+        shots.append(pop(test_df, 8))
+        shots.append(pop(test_df, 10))
+        shots.append(pop(test_df, 42)) 
+    elif num_of_shots == 4:
+        shots.append(pop(test_df, 8))
+        shots.append(pop(test_df, 10))
+        shots.append(pop(test_df, 42))
+        shots.append(pop(test_df, 44))
     
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
@@ -103,7 +147,7 @@ if __name__ == "__main__":
         sample = {
             "readme": readme,
             "description": description,
-            "prompt": generate_testing_prompt(readme),
+            "prompt": generate_testing_prompt(readme, shots),
         }
         samples.append(sample)
     results_df = pd.DataFrame(samples)
@@ -182,5 +226,13 @@ if __name__ == "__main__":
     
     full_results_df = pd.concat([results_df, predictions_df, r1_df, r2_df, rl_df, rlsum_df], axis=1)
     full_results_df = full_results_df.dropna()
-    # full_results_df.to_csv('../results/result_llama2-7b-zero-shot_readme_summarization.csv')
-    full_results_df.to_csv('../results/result_llama2-7b-chat-zero-shot_readme_summarization.csv')
+
+    if is_chat == 'false':
+        full_results_df.to_csv(f'../results/result_llama2-7b-{num_of_shots}-shots_readme_summarization.csv')
+    else:
+        full_results_df.to_csv(f'../results/result_llama2-7b-chat-{num_of_shots}-shots_readme_summarization.csv')
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--is_chat", type=str, help="Specify the chat version of Llama2 or not. If yes, the value is 'true'. Otherwise is 'false'")
+    parser.add_argument("--shots", type=str, help="Enter the number of shots!\n")
