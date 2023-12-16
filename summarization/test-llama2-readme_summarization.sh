@@ -13,4 +13,4 @@ huggingface-cli login --token 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
 # export TOKENIZERS_PARALLELISM=false
 
 # Test
-python test-llama2.py --is_chat=${1} --shots=${2}
+python test-llama2-readme_summarization.py --is_chat=${1} --shots=${2}

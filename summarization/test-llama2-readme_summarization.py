@@ -81,7 +81,9 @@ def process_description(s: str) -> str:
 def test(args):
     
     is_chat = f"{args.is_chat}"
-    num_of_shots = int(args.shots)    
+    num_of_shots = int(f"{args.shots}")
+    
+    print(is_chat, num_of_shots)  
     
     DEVICE = torch.device("cuda:0") if torch.cuda.is_available() else "cpu"
     MODEL_NAME = "meta-llama/Llama-2-7b-hf" if is_chat == "false" else "meta-llama/Llama-2-7b-chat-hf"
@@ -233,3 +235,5 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--is_chat", type=str, help="Specify the chat version of Llama2 or not. If yes, the value is 'true'. Otherwise is 'false'")
     parser.add_argument("--shots", type=str, help="Enter the number of shots!\n")
+    args = parser.parse_args()
+    test(args)
