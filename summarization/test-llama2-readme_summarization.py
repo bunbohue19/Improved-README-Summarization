@@ -182,4 +182,5 @@ if __name__ == "__main__":
     
     full_results_df = pd.concat([results_df, predictions_df, r1_df, r2_df, rl_df, rlsum_df], axis=1)
     full_results_df = full_results_df.dropna()
-    full_results_df.to_csv('../results/result_llama2-7b-zero-shot_readme_summarization.csv')
+    # full_results_df.to_csv('../results/result_llama2-7b-zero-shot_readme_summarization.csv')
+    full_results_df.to_csv('../results/result_llama2-7b-chat-zero-shot_readme_summarization.csv')
