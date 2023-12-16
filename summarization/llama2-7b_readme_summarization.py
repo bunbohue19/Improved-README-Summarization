@@ -65,7 +65,7 @@ def process_dataset(data: Dataset):
 if __name__ == "__main__":
     DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
     # MODEL_NAME = "meta-llama/Llama-2-7b-hf"
-    # MODEL_NAME = "meta-llama/Llama-2-7b-chat-hf"
+    MODEL_NAME = "meta-llama/Llama-2-7b-chat-hf"
 
     # You need to change this parameter according to your real path.
     OUTPUT_DIR = "./llama2-7b-chat_readme_summarization"
