@@ -6,8 +6,11 @@ export TRANSFORMERS_CACHE=../../hf-pretrained-checkpoints/
 # Specify the device
 export CUDA_VISIBLE_DEVICES="0"
 
+# Set access tokens
+huggingface-cli login --token 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
+
 # Disable tokenizers parallelism
 # export TOKENIZERS_PARALLELISM=false
 
 # Test
-python test-llama2.py
+python test-llama2.py --is_chat=${1} --shots=${2}

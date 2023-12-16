@@ -85,7 +85,6 @@ def test(args):
     
     DEVICE = torch.device("cuda:0") if torch.cuda.is_available() else "cpu"
     MODEL_NAME = "meta-llama/Llama-2-7b-hf" if is_chat == "false" else "meta-llama/Llama-2-7b-chat-hf"
-    AUTH_TOKEN='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'
     OUTPUT_DIR = "./llama2-7b_readme_summarization" if is_chat == "false" else "./llama2-7b-chat_readme_summarization"
     test_csv_file = '../dataset/test.csv'
     
@@ -122,7 +121,6 @@ def test(args):
     
     tokenizer = AutoTokenizer.from_pretrained(
         MODEL_NAME, 
-        use_auth_token=AUTH_TOKEN, 
         truncation=True
     )
     tokenizer.pad_token = tokenizer.eos_token
@@ -133,8 +131,7 @@ def test(args):
         use_safetensors=True,
         quantization_config=bnb_config,
         trust_remote_code=True,
-        device_map="auto",
-        use_auth_token=AUTH_TOKEN
+        device_map="auto"
     )
     
     model = PeftModel.from_pretrained(model, OUTPUT_DIR)
