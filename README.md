@@ -3,7 +3,7 @@
 This is the implementation of the: "Summarization of GitHub artifacts with Llama 2: How far can we go?"
 
 ## Environment: 
-- Require: python=3.9
+- Require: python=3.9\
 Other libraries you can find at requirements.txt
 
 ## Dataset
