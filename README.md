@@ -1,10 +1,10 @@
 # Improved-README-Summarization
 
-This is the implementation of the: ""
+This is the implementation of the: "Summarization of GitHub artifacts with Llama 2: How far can we go?"
 
 ## Environment: 
-- python=3.9
-- transformers
+- Require: python=3.9\
+Other libraries you can find at requirements.txt
 
 ## Dataset
 - Dataset is available at this [link](https://drive.google.com/file/d/1hNiaype-4XqsKq38pZ-qE7iUkJaorrI7/view?usp=sharing)
