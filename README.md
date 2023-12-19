@@ -42,9 +42,10 @@ Or you can find it in `dataset/` folder
       - `pegasus-large`
       - `pegasus-x-base`
       - `pegasus-x-large`
-      - `pegasus-xsum`\
+      - `pegasus-xsum`
   
-    `<DEVICE>` is the ID number of GPU (i.e. 0, 1, 2,...)\
+    `<DEVICE>` is the ID number of GPU (i.e. 0, 1, 2,...)
+    
     For example: `sh test.sh bart-base 0`
 - To test a fine-tuned LLM model (Llama2-7b):  
     
