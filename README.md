@@ -22,6 +22,28 @@ Or you can find it in `dataset/` folder
 - Include two large language models: Llama2 and Llama2-chat
 - All models are available at my repository in HuggingFace
 ### Results
-- `results/` contains the results of our test set based on ROUGE scores, includes ROUGE-1, ROUGE-2, ROUGE-L, ROUGE-LSUM and the predictions
+- `results/` contains the results of our test set based on ROUGE scores, including ROUGE-1, ROUGE-2, ROUGE-L, ROUGE-LSUM and the predictions
 ### Summarization
 - `summarization/` contains all the implementation of data processing, training, and testing pre-trained models.\
+- To fine-tune from a pre-trained LM model:
+  - Open script file `train.sh`, uncomment the pre-trained model which you want to do
+  - Modify some arguments if you want
+  - Run command: `sh train.sh`
+- To test a fine-tuned LM model:
+  - Open script file `test.sh`, and modify some arguments if you want
+  - Run command: `sh test.sh <CHECKPOINT_NAME> <DEVICE>`. Where:
+    `<CHECKPOINT_NAME>` is one of the following: 
+      - `bart-base`
+      - `bart-large`
+      - `bart-large-xsum`
+      - `t5-small`
+      - `t5-base`
+      - `t5-large`
+      - `pegasus-large`
+      - `pegasus-x-base`
+      - `pegasus-x-large`
+      - `pegasus-xsum`
+    `<DEVICE>` is the ID number of GPU (i.e. 0, 1, 2,...)
+    For example: `sh test.sh bart-base 0`
+- To test a fine-tuned LLM model (Llama2-7b):  
+    
