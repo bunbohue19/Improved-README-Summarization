@@ -123,8 +123,7 @@ if __name__ == '__main__':
                         7.pegasus-large\n\
                         8.pegasus-x-base\n\
                         9.pegasus-x-large\n\
-                        10.pegasus-xsum\n\
-                        11.llama2-7b")
+                        10.pegasus-xsum\n")
     
     parser.add_argument("--device", type=str, help="Specify the device number")
     args = parser.parse_args()
