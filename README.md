@@ -11,10 +11,6 @@ This is the implementation of the paper: "SALA: Summarization of GitHub artifact
 - Require: python=3.9\
 Other packages you can find at requirements.txt
 
-## Large language models:
-- Llama2-7b 
-- Llama2-7b-chat
-
 ## Folder Walkthrough
 ### Dataset
 `dataset/` contains all data for collected data
