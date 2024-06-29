@@ -8,15 +8,38 @@ from peft import LoraConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments
 from trl import SFTTrainer
 
-def generate_training_prompt(readme: str, summary: str) -> str:
-    return f"""### Instruction: Summarize the following README contents with LESS THAN 30 words. Your answer should be based on the provided README contents only.
+def generate_training_prompt(readme, summary, shots):
+    if len(shots) == 0:
+        return f"""### Instruction: You are a helpful assistant. You need to summarize the following README contents. A good answer should be based on the provided README contents only and LESS THAN 20 words.
 
-    ### README contents:
-    {readme.strip()}
+        ### README contents:
+        {readme.strip()}
 
-    ### Summary:
-    {summary}
-    """.strip()
+        ### Summary:
+        {summary}
+        """.strip()
+    else:
+        prompt = """### Instruction: You are a helpful assistant. You need to summarize the following README contents. A good answer should be based on the provided README contents only and LESS THAN 20 words.
+        ### For examples:
+        """
+
+        for i in range(len(shots)):
+            prompt += f"""
+            ### README contents:
+            {shots[i]['readme'].strip()}
+
+            ### Summary:
+            {shots[i]['description'].strip()}
+            """
+
+        prompt += f"""
+        ### README contents:
+        {readme.strip()}
+
+        ### Summary:
+        {summary}
+        """.strip()
+        return prompt
 
 # Function to remove tags
 def format_entry(md_data) :
@@ -65,15 +88,14 @@ def process_dataset(data: Dataset):
 if __name__ == "__main__":
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     MODEL_NAME = "meta-llama/Llama-2-7b-hf"
-    # MODEL_NAME = "meta-llama/Llama-2-7b-chat-hf"
 
     # You need to change this parameter according to your real path.
-    OUTPUT_DIR = "./llama2-7b-chat_readme_summarization"
+    OUTPUT_DIR = "./llama2-7b_readme_summarization"
     train_csv_file = '../dataset/train.csv'
     val_csv_file = '../dataset/validation.csv'
 
     # For access LLama2 pre-trained model in HuggingFace
-    AUTH_TOKEN='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'
+    AUTH_TOKEN='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'
     
     # Read data
     train_df = pd.read_csv(train_csv_file, usecols=['readme', 'description'])
@@ -154,6 +176,7 @@ if __name__ == "__main__":
         group_by_length=True,
         output_dir=OUTPUT_DIR,
         report_to="wandb",
+        run_name="llama2-7b-readsum-29-06-2024-tesla-a100",
         save_safetensors=True,
         lr_scheduler_type="cosine",
         seed=42,
@@ -166,7 +189,7 @@ if __name__ == "__main__":
         eval_dataset=processed_val_dataset,
         peft_config=peft_config,
         dataset_text_field="prompt_text",
-        max_seq_length=512,
+        max_seq_length=4096,
         tokenizer=tokenizer,
         args=training_arguments,
     )
