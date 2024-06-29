@@ -1,0 +1,19 @@
+transformers[torch]
+accelerate
+torch
+datasets
+evaluate
+rouge_score
+numpy
+pandas
+matplotlib
+sentencepiece
+scikit-learn
+peft
+bitsandbytes
+wandb
+# argparse
+trl
+beautifulsoup4
+markdown
+sentence_transformers
