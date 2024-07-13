@@ -8,7 +8,7 @@ from peft import LoraConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments
 from trl import SFTTrainer
 
-def generate_training_prompt(readme, summary, shots):
+def generate_training_prompt(readme, summary, shots=[]):
     if len(shots) == 0:
         return f"""### Instruction: You are a helpful assistant. You need to summarize the following README contents. A good answer should be based on the provided README contents only and LESS THAN 20 words.
 
@@ -180,7 +180,7 @@ if __name__ == "__main__":
         save_safetensors=True,
         lr_scheduler_type="cosine",
         seed=42,
-        push_to_hub=True
+        # push_to_hub=True
     )
 
     trainer = SFTTrainer(
@@ -196,4 +196,4 @@ if __name__ == "__main__":
     
     trainer.train()
     trainer.save_model()
-    trainer.push_to_hub()
+    # trainer.push_to_hub()

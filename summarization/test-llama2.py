@@ -37,7 +37,7 @@ def mean_pooling(model_output, attention_mask):
 # Few-shots prompting
 def generate_testing_prompt(readme, shots):
     if len(shots) == 0:
-        return f"""### Instruction: Summarize the following README contents with LESS THAN 30 words. Your answer should be based on the provided README contents only.
+        return f"""### Instruction: You are a helpful assistant. You need to summarize the following README contents. A good answer should be based on the provided README contents only and LESS THAN 20 words.
 
         ### README contents:
         {readme.strip()}
@@ -45,7 +45,7 @@ def generate_testing_prompt(readme, shots):
         ### Summary:
         """.strip()
     else:
-        prompt = """### Instruction: Summarize the following README contents with LESS THAN 30 words. Your answer should be based on the provided README contents only.
+        prompt = """### Instruction: You are a helpful assistant. You need to summarize the following README contents. A good answer should be based on the provided README contents only and LESS THAN 20 words.
         ### For examples:
         """
         
@@ -100,9 +100,7 @@ def test(args):
     
     DEVICE = torch.device("cuda") if torch.cuda.is_available() else "cpu"
     MODEL_NAME = "meta-llama/Llama-2-7b-hf"
-    OUTPUT_DIR = "./zero-shot-prompting-llama-2-7b_readsum"
-    # OUTPUT_DIR = "./one-shot-prompting-llama-2-7b_readsum"
-    # OUTPUT_DIR = "./two-shot-prompting-llama-2-7b_readsum"
+    OUTPUT_DIR = "./zero-shot-prompting-llama-2-7b_readsum_29-6-2024"
     
     # Read data
     test_df = pd.read_csv('../dataset/updated_test.csv', usecols=['readme', 'description'])
@@ -118,10 +116,6 @@ def test(args):
     elif num_of_shots == 2:
         shots.append(pop(test_df, 8))
         shots.append(pop(test_df, 10))
-    elif num_of_shots == 3:
-        shots.append(pop(test_df, 8))
-        shots.append(pop(test_df, 10))
-        shots.append(pop(test_df, 42)) 
     
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
@@ -234,7 +228,7 @@ def test(args):
     
     ### SIDE scores
     ### Get the score per sample
-    checkPointFolder = "/media/aiotlab3/27934be5-a11a-44ba-8b28-750d135bc3b3/RISE/Loc/code-summarization-metric/Models/baseline/103080" 
+    checkPointFolder = "/mnt/4TData/vuquang/code-summarization-metric/Models/baseline/103080" 
     tokenizer = AutoTokenizer.from_pretrained(checkPointFolder)
     model = AutoModel.from_pretrained(checkPointFolder).to(DEVICE)
     
@@ -267,10 +261,9 @@ def test(args):
         SIDE_results_df.loc[-1] = [res]
         SIDE_results_df.index += 1
     SIDE_results_df.index -= 1
-    
     full_results_df = pd.concat([test_df, predictions_df, r1_df, r2_df, rl_df, rlsum_df, SIDE_results_df], axis=1)
     full_results_df = full_results_df.dropna()
-    full_results_df.to_csv(f'../results/updated_result-{num_of_shots}-shot_llama2-7b_.csv')
+    full_results_df.to_csv(f'../results/updated_result-{num_of_shots}-shot_llama2-7b_29-06.csv', escapechar=',')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
